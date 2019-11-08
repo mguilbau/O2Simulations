@@ -66,12 +66,12 @@ void MFTTrackInspector(
     for (const auto &rofRec : rofRecVec) {
       auto rofEntry = rofRec.getROFEntry();
       int nTrackROF = rofRec.getNROFEntries();
-      LOG(INFO) << "Processing ROF:" << rofRec.getROFrame() << " with "
-                << nTrackROF << " entries";
-      if (!nTrackROF) {
-        LOG(INFO) << "Frame is empty"; // ??
-        continue;
-      }
+      //LOG(INFO) << "Processing ROF:" << rofRec.getROFrame() << " with "
+      //          << nTrackROF << " entries";
+      //if (!nTrackROF) {
+      //  LOG(INFO) << "Frame is empty"; // ??
+      //  continue;
+      //}
       if (rofEntry.getEvent() != trackTree.GetReadEntry() + offs || !nEntProc) {
         trackTree.GetEntry(rofEntry.getEvent() +
                            offs); // read tree entry containing needed ROF data
@@ -80,8 +80,8 @@ void MFTTrackInspector(
       int trackIndex =
           rofEntry.getIndex(); // needed ROF tracks start from this one
       int maxTrackIndex = trackIndex + nTrackROF;
-      LOG(INFO) << "BV===== trackIndex " << trackIndex << " maxTrackIndex "
-                << maxTrackIndex << "\n";
+      //LOG(INFO) << "BV===== trackIndex " << trackIndex << " maxTrackIndex "
+      //          << maxTrackIndex << "\n";
     }
   } // loop over multiple ROFvectors (in case of chaining)
 
@@ -101,21 +101,14 @@ void MFTTrackInspector(
     }
     int trackNumber = 0;
     for (const auto &trackLTF : trackLTFVec) {
-      LOG(INFO) << "===== TrackLTF # " << trackNumber << " nPoints = " <<  trackLTF.getNPoints() << " =====";
+      //LOG(INFO) << "===== TrackLTF # " << trackNumber << " nPoints = " <<  trackLTF.getNPoints() << " =====";
       auto thisTrackMCCompLabels = trackLTF.getMCCompLabels();
+      auto firstTrackID = thisTrackMCCompLabels[0].getTrackID();
       for (auto iLabel = 0; iLabel < trackLTF.getNPoints(); iLabel++) {
-        LOG(INFO) << "MCCompLabels.TrackID = "
-                  << thisTrackMCCompLabels[iLabel].getTrackID();
-      }
-
-      auto thisTrackLayers = trackLTF.getLayers();
-      for (auto iLayer = 0; iLayer < trackLTF.getNPoints(); iLayer++) {
-        LOG(INFO) << "trackLTF Layer = " << thisTrackLayers[iLayer];
-      }
-
-      auto thisXCoordinates = trackLTF.getXCoordinates();
-      for (auto iCoordinate = 0; iCoordinate < trackLTF.getNPoints(); iCoordinate++) {
-        LOG(INFO) << "trackLTF x = " << thisXCoordinates[iCoordinate];
+        if(firstTrackID!=thisTrackMCCompLabels[iLabel].getTrackID()) {
+           LOG(INFO) << "===== TrackLTF # " << trackNumber << " TrackIDs from different MCtracks!" ;
+           break;
+         }
       }
 
       trackNumber++;
