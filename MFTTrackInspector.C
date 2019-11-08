@@ -14,7 +14,9 @@ void MFTTrackInspector(
         "MFTTrackInspector.root",           // name of the output binary file
     std::string inpName = "mfttracks.root", // name of the input MFT tracks
     std::string trackTreeName = "o2sim",    // name of the tracks tree
-    std::string trackBranchName = "MFTTrackLTF", // name of the tracks branch
+    std::string trackLTFBranchName = "MFTTrackLTF", // name of the tracks branch
+    std::string trackCABranchName = "MFTTrackCA",   // name of the tracks branch
+
     std::string rofRecName =
         "MFTTracksROF" // name of the ROF records tree and its branch
 ) {
@@ -24,19 +26,29 @@ void MFTTrackInspector(
   using ROFRVEC = std::vector<o2::itsmft::ROFRecord>;
 
   ///-------> input
-  TChain trackTree(trackTreeName.c_str());
+  TChain trackLTFTree(trackTreeName.c_str());
+  TChain trackCATree(trackTreeName.c_str());
   TChain rofTree(rofRecName.c_str());
 
-  trackTree.AddFile(inpName.c_str());
+  trackLTFTree.AddFile(inpName.c_str());
+  trackCATree.AddFile(inpName.c_str());
   rofTree.AddFile(inpName.c_str());
 
   // TrackLTF record entries in the track tree
   std::vector<o2::mft::TrackLTF> trackLTFVec, *trackLTFVecP = &trackLTFVec;
-  if (!trackTree.GetBranch(trackBranchName.c_str())) {
-    LOG(FATAL) << "Failed to find the branch " << trackBranchName
+  if (!trackLTFTree.GetBranch(trackLTFBranchName.c_str())) {
+    LOG(FATAL) << "Failed to find the branch " << trackLTFBranchName
                << " in the tree " << trackTreeName;
   }
-  trackTree.SetBranchAddress(trackBranchName.c_str(), &trackLTFVecP);
+  trackLTFTree.SetBranchAddress(trackLTFBranchName.c_str(), &trackLTFVecP);
+
+  // TrackCA record entries in the track tree
+  std::vector<o2::mft::TrackCA> trackCAVec, *trackCAVecP = &trackCAVec;
+  if (!trackCATree.GetBranch(trackCABranchName.c_str())) {
+    LOG(FATAL) << "Failed to find the branch " << trackCABranchName
+               << " in the tree " << trackTreeName;
+  }
+  trackCATree.SetBranchAddress(trackCABranchName.c_str(), &trackCAVecP);
 
   // ROF record entries in the track tree
   ROFRVEC rofRecVec, *rofRecVecP = &rofRecVec;
@@ -48,72 +60,77 @@ void MFTTrackInspector(
 
   ///-------< input
 
-  // Loop on
-  // rofTree-------------------------------------------------------------------------------<<<<
-  int lastTreeID = -1;
-  long offs = 0, nEntProc = 0;
-  LOG(INFO) << "rofTree.GetEntries(): " << rofTree.GetEntries() << " \n";
-  for (int i = 0; i < rofTree.GetEntries(); i++) {
-    rofTree.GetEntry(i);
-    if (rofTree.GetTreeNumber() >
-        lastTreeID) {       // this part is needed for chained input
-      if (lastTreeID > 0) { // new chunk, increase the offset
-        offs += trackTree.GetTree()->GetEntries();
+  // Loop on trackLTFs
+  int lastTrackLTFtreeID = -1;
+  long trackLTFoffs = 0;
+  // LOG(INFO) << "trackLTFTree.GetEntries(): " << trackLTFTree.GetEntries();
+  for (int i = 0; i < trackLTFTree.GetEntries(); i++) {
+    trackLTFTree.GetEntry(i);
+    if (trackLTFTree.GetTreeNumber() >
+        lastTrackLTFtreeID) {       // this part is needed for chained input
+      if (lastTrackLTFtreeID > 0) { // new chunk, increase the offset
+        trackLTFoffs += trackLTFTree.GetTree()->GetEntries();
       }
-      lastTreeID = rofTree.GetTreeNumber();
+      lastTrackLTFtreeID = trackLTFTree.GetTreeNumber();
     }
 
-    for (const auto &rofRec : rofRecVec) {
-      auto rofEntry = rofRec.getROFEntry();
-      int nTrackROF = rofRec.getNROFEntries();
-      //LOG(INFO) << "Processing ROF:" << rofRec.getROFrame() << " with "
-      //          << nTrackROF << " entries";
-      //if (!nTrackROF) {
-      //  LOG(INFO) << "Frame is empty"; // ??
-      //  continue;
-      //}
-      if (rofEntry.getEvent() != trackTree.GetReadEntry() + offs || !nEntProc) {
-        trackTree.GetEntry(rofEntry.getEvent() +
-                           offs); // read tree entry containing needed ROF data
-        nEntProc++;
-      }
-      int trackIndex =
-          rofEntry.getIndex(); // needed ROF tracks start from this one
-      int maxTrackIndex = trackIndex + nTrackROF;
-      //LOG(INFO) << "BV===== trackIndex " << trackIndex << " maxTrackIndex "
-      //          << maxTrackIndex << "\n";
-    }
-  } // loop over multiple ROFvectors (in case of chaining)
-
-  // Loop on
-  // trackTree-------------------------------------------------------------------------------<<<<
-  int lastTracktreeID = -1;
-  long trackoffs = 0, nEntProcTrack = 0;
-  LOG(INFO) << "trackTree.GetEntries(): " << trackTree.GetEntries();
-  for (int i = 0; i < trackTree.GetEntries(); i++) {
-    trackTree.GetEntry(i);
-    if (trackTree.GetTreeNumber() >
-        lastTracktreeID) {       // this part is needed for chained input
-      if (lastTracktreeID > 0) { // new chunk, increase the offset
-        trackoffs += trackTree.GetTree()->GetEntries();
-      }
-      lastTracktreeID = trackTree.GetTreeNumber();
-    }
-    int trackNumber = 0;
+    // trackLTFTree-------------------------------------------------------------------------------<<<<
+    int trackLTFNumber = 0, trackLTFmixed = 0;
     for (const auto &trackLTF : trackLTFVec) {
-      //LOG(INFO) << "===== TrackLTF # " << trackNumber << " nPoints = " <<  trackLTF.getNPoints() << " =====";
+      // LOG(INFO) << "===== TrackLTF # " << trackLTFNumber << " nPoints = " <<
+      // trackLTF.getNPoints() << " =====";
       auto thisTrackMCCompLabels = trackLTF.getMCCompLabels();
       auto firstTrackID = thisTrackMCCompLabels[0].getTrackID();
       for (auto iLabel = 0; iLabel < trackLTF.getNPoints(); iLabel++) {
-        if(firstTrackID!=thisTrackMCCompLabels[iLabel].getTrackID()) {
-           LOG(INFO) << "===== TrackLTF # " << trackNumber << " TrackIDs from different MCtracks!" ;
-           break;
-         }
+        if (firstTrackID != thisTrackMCCompLabels[iLabel].getTrackID()) {
+          // LOG(INFO) << "===== TrackLTF # " << trackLTFNumber << " TrackIDs
+          // from different MCtracks!" ;
+          trackLTFmixed++;
+          break;
+        }
       }
-
-      trackNumber++;
+      trackLTFNumber++;
     }
-  } // loop over multiple ROFvectors (in case of chaining)
+    LOG(INFO) << "========== Mixed TrackLTFs = " << trackLTFmixed << " of "
+              << trackLTFNumber << " reconstructed tracks ("
+              << 100.0 * trackLTFmixed / trackLTFNumber << " %)";
+  } // loop over multiple TrackLTF (in case of chaining)
+
+  // Loop on trackCAs
+  int lastTrackCAtreeID = -1;
+  long trackCAoffs = 0;
+  // LOG(INFO) << "trackCATree.GetEntries(): " << trackCATree.GetEntries();
+  for (int i = 0; i < trackCATree.GetEntries(); i++) {
+    trackCATree.GetEntry(i);
+    if (trackCATree.GetTreeNumber() >
+        lastTrackCAtreeID) {       // this part is needed for chained input
+      if (lastTrackCAtreeID > 0) { // new chunk, increase the offset
+        trackCAoffs += trackCATree.GetTree()->GetEntries();
+      }
+      lastTrackCAtreeID = trackCATree.GetTreeNumber();
+    }
+
+    // trackCATree-------------------------------------------------------------------------------<<<<
+    int trackCANumber = 0, trackCAmixed = 0;
+    for (const auto &trackCA : trackCAVec) {
+      // LOG(INFO) << "===== TrackCA # " << trackCANumber << " nPoints = " <<
+      // trackCA.getNPoints() << " =====";
+      auto thisTrackMCCompLabels = trackCA.getMCCompLabels();
+      auto firstTrackID = thisTrackMCCompLabels[0].getTrackID();
+      for (auto iLabel = 0; iLabel < trackCA.getNPoints(); iLabel++) {
+        if (firstTrackID != thisTrackMCCompLabels[iLabel].getTrackID()) {
+          // LOG(INFO) << "===== TrackCA # " << trackCANumber << " TrackIDs from
+          // different MCtracks!" ;
+          trackCAmixed++;
+          break;
+        }
+      }
+      trackCANumber++;
+    }
+    LOG(INFO) << "========== Mixed TrackCAs = " << trackCAmixed << " of "
+              << trackCANumber << " reconstructed tracks ("
+              << 100.0 * trackCAmixed / trackCANumber << " %)";
+  } // loop over multiple TrackCA (in case of chaining)
 
   //
   swTot.Stop();
