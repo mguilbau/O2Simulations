@@ -23,6 +23,9 @@ void MFT_Tracker_inspector(const Char_t *SimFile = "o2sim.root", const Char_t *t
   std::unique_ptr<TH1F> MFTTracksp = std::make_unique<TH1F> ("MFT Tracks p", "MFT Tracks p", 100, 0, 5);
   std::unique_ptr<TH1F> MFTTrackRap = std::make_unique<TH1F> ("MFT Tracks eta", "MFT Tracks Rapidity", 100, -4.0, -2);
 
+  //std::unique_ptr<TH1F> MFTEfficiencypT = std::make_unique<TH1F> ("MFT Efficiency pT", "MFT Efficiency pT", 100, 0, 5);
+  //std::unique_ptr<TH1F> MFTTEfficiencyp = std::make_unique<TH1F> ("MFT Efficiency p", "MFT Efficiency p", 100, 0, 5);
+  //std::unique_ptr<TH1F> MFTEfficiencyRap = std::make_unique<TH1F> ("MFT Efficiency eta", "MFT Efficiency Rapidity", 100, -4.0, -2);
 
   std::unique_ptr<TH1F> LTFTrackspT = std::make_unique<TH1F> ("LTF Tracks pT", "LTF Tracks pT", 100, 0, 5);
   std::unique_ptr<TH1F> LTFTracksp = std::make_unique<TH1F> ("LTF Tracks p", "LTF Tracks p", 100, 0, 5);
@@ -150,6 +153,14 @@ void MFT_Tracker_inspector(const Char_t *SimFile = "o2sim.root", const Char_t *t
     } // end Loop on tracks
   } // end loop over events
 
+TH1F MFTEfficiencypT = (*MFTTrackspT)/ (*MCTrackspT);
+TH1F MFTTEfficiencyp = (*MFTTracksp) / (*MCTracksp);
+TH1F MFTEfficiencyRap = (*MFTTrackRap) / (*MCTrackRap);
+
+MFTEfficiencypT.SetNameTitle("MFT Efficiency pT", "MFT Efficiency pT");
+MFTTEfficiencyp.SetNameTitle("MFT Efficiency p", "MFT Efficiency p");
+MFTEfficiencyRap.SetNameTitle("MFT Efficiency eta", "MFT Efficiency Rapidity");
+
 // Write Histograms to file
 MCTrackspT->Write();
 MCTracksp->Write();
@@ -158,6 +169,10 @@ MCTrackRap->Write();
 MFTTrackspT->Write();
 MFTTracksp->Write();
 MFTTrackRap->Write();
+
+MFTEfficiencypT.Write();
+MFTTEfficiencyp.Write();
+MFTEfficiencyRap.Write();
 
 UntrackablepT->Write();
 Untrackablep->Write();
