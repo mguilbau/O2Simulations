@@ -54,7 +54,7 @@ void MFT_Tracker_inspector(const Char_t *SimFile = "o2sim.root", const Char_t *t
   Int_t numberOfEvents = o2SimTree -> GetEntries();
   std::cout << "numberOfEvents = " << numberOfEvents << std::endl;
 
-  Int_t NInvalid_tracks = 0;
+  Int_t nCleanTracksLTF = 0, nCleanTracksCA = 0, nBadTracksLTF =0, nBadTracksCA = 0;
   std::vector<int> eventsWithInvalidIDs;
 
   vector<Hit>* hit = nullptr;
@@ -74,7 +74,6 @@ void MFT_Tracker_inspector(const Char_t *SimFile = "o2sim.root", const Char_t *t
     //std::cout << "Resizing allFoundTracks for event " << event <<  " with ntracks = " << numberOfTracksPerEvent << std::endl;
     allFoundTracksLTF[event].resize(numberOfTracksPerEvent,false);
     allFoundTracksCA[event].resize(numberOfTracksPerEvent,false);
-
   }
 
   // 1. Loop over all reconstructed tracks to build found tracks identities
@@ -86,42 +85,69 @@ void MFT_Tracker_inspector(const Char_t *SimFile = "o2sim.root", const Char_t *t
   //   2.3 Fill Histograms
 
 
-  // TracksLTF
+  // TracksLTF - Discover reconstructed tracks
   for (const auto &trackLTF : trackLTFVec) {
   auto thisTrackMCCompLabels = trackLTF.getMCCompLabels();
-  auto firstTrackID = thisTrackMCCompLabels[0].getTrackID();
+  std::map<Int_t, Int_t> trkIDs;
+  for (auto iLabel = 0; iLabel < trackLTF.getNPoints(); iLabel++) { // Count trackIDs of this track
+    auto id = thisTrackMCCompLabels[iLabel].getTrackID();
+    trkIDs[id]=trkIDs[id]+1;
+    //std::cout << thisTrackMCCompLabels[iLabel].getTrackID() << " ";
+  }
+  std::cout << std::endl;
+
+  Int_t thisTrkID=-1;
+  for (auto iLabel = 0; iLabel < trackLTF.getNPoints(); iLabel++) { //Decide if track was successfully tracked
+    auto id = thisTrackMCCompLabels[iLabel].getTrackID();
+    //std::cout << "ID ; count ; NPoints ; count/NPoints : "<< id << " " << trkIDs[id] << " " << trackLTF.getNPoints()  << " " << 1.0*trkIDs[id]/trackLTF.getNPoints() << std::endl;
+    if(1.0*trkIDs[id]/trackLTF.getNPoints() >= 0.8)  thisTrkID = id;
+  }
+  //std::cout << "This TrackLTF ID = " << thisTrkID << std::endl;
   auto eventID =  thisTrackMCCompLabels[0].getEventID();
-  if(!allFoundTracksLTF[eventID][firstTrackID]) allFoundTracksLTF[eventID][firstTrackID]=true; else std::cout << "TRACK Found Elsewere!!!\n";
-  //std::cout << "Found TrackLTF " << firstTrackID << " in event " << eventID << std::endl;
-  //for (auto iLabel = 0; iLabel < trackLTF.getNPoints(); iLabel++) {
-  //  std::cout << thisTrackMCCompLabels[iLabel].getTrackID() << " ";
-  //}
-  //  std::cout << std::endl;
+  if(thisTrkID>0) {
+   allFoundTracksLTF[eventID][thisTrkID]=true;
+   nCleanTracksLTF++;
+   }
+   else {
+    //std::cout << "Noise or Mixed TrackLTF!" << std::endl;
+    nBadTracksLTF++;
   }
 
+}
 
-  // TracksCA
-  for (const auto &trackCA : trackCAVec) {
-  auto thisTrackMCCompLabels = trackCA.getMCCompLabels();
-  auto firstTrackID = thisTrackMCCompLabels[0].getTrackID();
-  auto eventID =  thisTrackMCCompLabels[0].getEventID();
-  //std::cout << "Found TrackCA " << firstTrackID << " in event " << eventID << std::endl;
-  //for (auto iLabel = 0; iLabel < trackCA.getNPoints(); iLabel++) {
-  //  std::cout << thisTrackMCCompLabels[iLabel].getTrackID() << " ";
-  //}
-    if (eventID < numberOfEvents & firstTrackID < numberOfTracksPerEvent ) {
-      allFoundTracksCA.at(eventID).at(firstTrackID)=true;
-    } else {
-      std::cout << "TrackCA InvalidID: " << firstTrackID << " in event " << eventID << std::endl;
-      NInvalid_tracks++;
-      eventsWithInvalidIDs.push_back(eventID);
-      for (auto iLabel = 0; iLabel < trackCA.getNPoints(); iLabel++) {
-        std::cout << thisTrackMCCompLabels[iLabel].getTrackID() << " ";
-      }
-      std::cout << std::endl;
 
-    }
-    }
+// TracksCA - Discover reconstructed tracks
+for (const auto &trackCA : trackCAVec) {
+auto thisTrackMCCompLabels = trackCA.getMCCompLabels();
+std::map<Int_t, Int_t> trkIDs;
+for (auto iLabel = 0; iLabel < trackCA.getNPoints(); iLabel++) { // Count trackIDs of this track
+  auto id = thisTrackMCCompLabels[iLabel].getTrackID();
+  trkIDs[id]=trkIDs[id]+1;
+  //std::cout << thisTrackMCCompLabels[iLabel].getTrackID() << " ";
+}
+std::cout << std::endl;
+
+Int_t thisTrkID=-1;
+for (auto iLabel = 0; iLabel < trackCA.getNPoints(); iLabel++) { //Decide if track was successfully tracked
+  auto id = thisTrackMCCompLabels[iLabel].getTrackID();
+  //std::cout << "ID ; count ; NPoints ; count/NPoints : "<< id << " " << trkIDs[id] << " " << trackCA.getNPoints()  << " " << 1.0*trkIDs[id]/trackCA.getNPoints() << std::endl;
+  if(1.0*trkIDs[id]/trackCA.getNPoints() >= 0.8)  thisTrkID = id;
+}
+//std::cout << "This TrackCA ID = " << thisTrkID << std::endl;
+auto eventID =  thisTrackMCCompLabels[0].getEventID();
+if(thisTrkID>0) {
+  allFoundTracksCA[eventID][thisTrkID]=true;
+  nCleanTracksCA++;
+}
+else {
+  //std::cout << "Noise or Mixed TrackCA!" << std::endl;
+  nBadTracksCA++;
+}
+
+}
+
+
+
 
   for (Int_t event=0; event<numberOfEvents ; event++) { // Loop over events in o2sim
     //std::cout << "Loop over events in o2sim. Event = " << event << std::endl;
@@ -230,5 +256,10 @@ Trackablility->Write();
 
 outFile.Close();
 
-std::cout << "NInvalid_tracks = " << NInvalid_tracks << std::endl;
+Int_t totalRecoMFTTracks = nCleanTracksLTF + nCleanTracksCA + nBadTracksLTF + nBadTracksCA;
+std::cout << "Total Reconstructed MFT Tracks = " << totalRecoMFTTracks << std::endl;
+std::cout << "nCleanTracksLTF = " << nCleanTracksLTF << std::endl;
+std::cout << "nCleanTracksCA = " << nCleanTracksCA << std::endl;
+std::cout << "nBadTracksLTF = " << nBadTracksLTF  << " (" << 100.f*nBadTracksLTF/(nCleanTracksLTF+nBadTracksLTF) << " %)" << std::endl;
+std::cout << "nBadTracksCA = " << nBadTracksCA << " (" << 100.f*nBadTracksCA/(nCleanTracksCA+nBadTracksCA) << " %)" << std::endl;
 }
