@@ -53,9 +53,12 @@ void MFT_Tracker_inspector(const Char_t *SimFile = "o2sim.root", const Char_t *t
 
 
   //2D Histos
-  std::unique_ptr<TH2F> MFTTrackedEtaZ = std::make_unique<TH2F> ("MFT_Tracked_eta_z", "Reconstructed Tracks: Rapidity vs z", 31, -15, 16, 25, etaMin, etaMax);
-  std::unique_ptr<TH2F> MFTAccepEtaZ = std::make_unique<TH2F> ("MFT_Acceptance_eta_z", "Trackables: Rapidity vs z", 31, -15, 16, 25, etaMin, etaMax);
-  std::unique_ptr<TH2F> MCTracksEtaZ = std::make_unique<TH2F> ("MCTracks_eta_z", "MC Tracks: Rapidity vs z", 31, -15, 16, 25, etaMin, etaMax);
+  std::unique_ptr<TH2F> MFTTrackedEtaZ = std::make_unique<TH2F> ("MFT_Tracked_eta_z", "Reconstructed Tracks: Rapidity vs zVertex", 31, -15, 16, 25, etaMin, etaMax);
+  MFTTrackedEtaZ->GetXaxis()->SetTitle("Vertex PosZ [cm]");
+  std::unique_ptr<TH2F> MFTAccepEtaZ = std::make_unique<TH2F> ("MFT_Acceptance_eta_z", "MFT Acceptance (Trackables): Rapidity vs zVertex", 31, -15, 16, 25, etaMin, etaMax);
+  MFTAccepEtaZ->GetXaxis()->SetTitle("Vertex PosZ [cm]");
+  std::unique_ptr<TH2F> MCTracksEtaZ = std::make_unique<TH2F> ("MCTracks_eta_z", "MC Tracks: Rapidity vs zVertex", 31, -15, 16, 25, etaMin, etaMax);
+  MCTracksEtaZ->GetXaxis()->SetTitle("Vertex PosZ [cm]");
 
 
 
@@ -246,10 +249,20 @@ else {
 TH1F MFTEfficiencypT = (*MFTTrackspT)/ (*MCTrackspT);
 TH1F MFTTEfficiencyp = (*MFTTracksp) / (*MCTracksp);
 TH1F MFTEfficiencyRap = (*MFTTrackRap) / (*MCTrackRap);
+TH2F MFTTrackerEfficiency = (*MFTTrackedEtaZ) / (*MFTAccepEtaZ);
+TH2F MFTEfficiency2D = (*MFTTrackedEtaZ) / (*MCTracksEtaZ);
+
+
 
 MFTEfficiencypT.SetNameTitle("MFT Efficiency pT", "MFT Efficiency pT");
 MFTTEfficiencyp.SetNameTitle("MFT Efficiency p", "MFT Efficiency p");
 MFTEfficiencyRap.SetNameTitle("MFT Efficiency eta", "MFT Efficiency Rapidity");
+MFTTrackerEfficiency.SetNameTitle("MFT Tracker Efficiency", "MFT Tracker Efficiency");
+MFTTrackerEfficiency.GetXaxis()->SetTitle("Vertex PosZ [cm]");
+
+MFTEfficiency2D.SetNameTitle("MFT Efficiency", "MFT Efficiency");
+MFTEfficiency2D.GetXaxis()->SetTitle("Vertex PosZ [cm]");
+
 
 // Write histograms to file
 //std::cout << "Writting histograms to file..." << std::endl;
@@ -280,14 +293,22 @@ MissedRap->Write();
 
 Trackablility->Write();
 
+
+MCTracksEtaZ->SetOption("CONT4");
+MCTracksEtaZ->Write();
+
 MFTAccepEtaZ->SetOption("CONT4");
 MFTAccepEtaZ->Write();
 
 MFTTrackedEtaZ->SetOption("CONT4");
 MFTTrackedEtaZ->Write();
 
-MCTracksEtaZ->SetOption("CONT4");
-MCTracksEtaZ->Write();
+
+MFTTrackerEfficiency.SetOption("CONT4");
+MFTTrackerEfficiency.Write();
+
+MFTEfficiency2D.SetOption("CONT4");
+MFTEfficiency2D.Write();
 
 outFile.Close();
 
