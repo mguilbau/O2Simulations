@@ -2,9 +2,9 @@
 #include "TFile.h"
 #include "TTree.h"
 
-constexpr Double_t LayerZ[] = {-45.3, -46.7, -48.6, -50.0, -52.4, -53.8, -67.7, -69.1, -76.1, -77.5};
+constexpr Double_t MFTLayerZ[] = {-45.3, -46.7, -48.6, -50.0, -52.4, -53.8, -67.7, -69.1, -76.1, -77.5};
 
-constexpr Double_t pMax = 5;
+constexpr Double_t pMax = 4;
 constexpr Double_t pMin = 0.1;
 constexpr Double_t etaMin = -3.9;
 constexpr Double_t etaMax = -2.0;
@@ -35,6 +35,22 @@ void MFT_Tracker_inspector(const Char_t *SimFile = "o2sim.root", const Char_t *t
   std::unique_ptr<TH1F> CATracksp = std::make_unique<TH1F> ("CA Tracks p", "CA Tracks p", 100, 0, 5);
   std::unique_ptr<TH1F> CATrackRap = std::make_unique<TH1F> ("CA Tracks eta", "LTF Tracks Rapidity", 100, -4.0, -2);
 
+  std::unique_ptr<TH1F> MCTracksEta5 = std::make_unique<TH1F> ("MC Tracks 5 eta", "-5 cm < zVertex < 5 cm", 100, etaMin, etaMax);
+  std::unique_ptr<TH1F> MCTracksEta5_10pos = std::make_unique<TH1F> ("MC Tracks -5 -10 eta", "-10 cm < zVertex < -5 cm", 100, etaMin, etaMax);
+  std::unique_ptr<TH1F> MCTracksEta5_10neg = std::make_unique<TH1F> ("MC Tracks 5 10 eta", "5 cm < zVertex < 10 cm", 100, etaMin, etaMax);
+
+  std::unique_ptr<TH1F> MFTTracksEta5 = std::make_unique<TH1F> ("MFT Tracks 5 eta", "-5 cm < zVertex < 5 cm", 100, etaMin, etaMax);
+  std::unique_ptr<TH1F> MFTTracksEta5_10pos = std::make_unique<TH1F> ("MFT Tracks -5 -10 eta", "-10 cm < zVertex < -5 cm", 100, etaMin, etaMax);
+  std::unique_ptr<TH1F> MFTTracksEta5_10neg = std::make_unique<TH1F> ("MFT Tracks 5 10 eta", "5 cm < zVertex < 10 cm", 100, etaMin, etaMax);
+
+
+  std::unique_ptr<TH1F> MCTracksp5 = std::make_unique<TH1F> ("MC Tracks 5 p", "-5 cm < zVertex < 5 cm", 100, 0, pMax);
+  std::unique_ptr<TH1F> MCTracksp5_10pos = std::make_unique<TH1F> ("MC Tracks -5 -10 p", "-10 cm < zVertex < -5 cm", 100, 0, pMax);
+  std::unique_ptr<TH1F> MCTracksp5_10neg = std::make_unique<TH1F> ("MC Tracks 5 10 p", "5 cm < zVertex < 10 cm", 100, 0, pMax);
+
+  std::unique_ptr<TH1F> MFTTracksp5 = std::make_unique<TH1F> ("MFT Tracks 5 p", "-5 cm < zVertex < 5 cm", 100, 0, pMax);
+  std::unique_ptr<TH1F> MFTTracksp5_10pos = std::make_unique<TH1F> ("MFT Tracks -5 -10 p", "-10 cm < zVertex < -5 cm", 100, 0, pMax);
+  std::unique_ptr<TH1F> MFTTracksp5_10neg = std::make_unique<TH1F> ("MFT Tracks 5 10 p", "5 cm < zVertex < 10 cm", 100, 0, pMax);
 
   std::unique_ptr<TH1I> Trackablility = std::make_unique<TH1I> ("Trackablility", "In how many disks the tracks has hits", 6, 0, 6);
 
@@ -94,12 +110,12 @@ void MFT_Tracker_inspector(const Char_t *SimFile = "o2sim.root", const Char_t *t
     allFoundTracksCA[event].resize(numberOfTracksPerEvent+10,false);
   }
 
-  // 1. Loop over all reconstructed tracks to build found tracks identities
-  //   1.1 Clean tracks have at least 80% of its clusters from the same tracks
-  //   1.2 If track is not clear it is a mixed and noise track
+  // 1. Loop over all reconstructed tracks to identify clean and mixed/noise tracks
+  //   1.1 Clean tracks have at least 80% of its clusters from the same track
+  //   1.2 If track is not clear it is a mixed/noise track
   // 2. Loop over all MC events to
-  //   2.1 Discover trackable tracks
-  //   2.2 Discover which tracks have been successfully reconstructed
+  //   2.1 Identify trackable tracks (clusters in at least 4 disks)
+  //   2.2 Identify successfully reconstructed tracks
   //   2.3 Fill Histograms
 
 
@@ -189,7 +205,7 @@ else {
       //std::cout << "n_hit = " << n_hit << " ** trID = " << trID << std::endl;
 
       Float_t z = hitp->GetZ(); // Z position of the hit = discover disk.
-      for(auto disk: {0,1,2,3,4}) if( z < LayerZ[disk*2] + .3  & z > LayerZ[disk*2+1] -.3 ) trackLayersHits[trID][disk] = true;
+      for(auto disk: {0,1,2,3,4}) if( z < MFTLayerZ[disk*2] + .3  & z > MFTLayerZ[disk*2+1] -.3 ) trackLayersHits[trID][disk] = true;
       }
 
     for (Int_t trID=0 ; trID < numberOfTracksPerEvent; trID++) { // Loop on tracks
@@ -197,10 +213,28 @@ else {
 
       //fill MC histograms
       MCTrackT<float>* thisTrack =  &(*mcTr)[trID];
+      auto z = thisTrack->GetStartVertexCoordinatesZ();
+      auto eta = thisTrack->GetRapidity();
+      auto p = thisTrack->GetP();
       MCTrackspT->Fill(thisTrack->GetPt());
-      MCTracksp->Fill(thisTrack->GetP());
-      MCTrackRap->Fill(thisTrack->GetRapidity());
-      MCTracksEtaZ->Fill(thisTrack->GetStartVertexCoordinatesZ(),thisTrack->GetRapidity());
+      MCTracksp->Fill(p);
+      MCTrackRap->Fill(eta);
+      MCTracksEtaZ->Fill(z,eta);
+      if( (z>-5) & (z<5) ) {
+        MCTracksEta5->Fill(eta);
+        MCTracksp5->Fill(p);
+      }
+      if( (z>5) & (z<10) ) {
+        MCTracksEta5_10pos->Fill(eta);
+        MCTracksp5_10pos->Fill(p);
+      }
+      if( (z>-10) & (z<-5) ) {
+        MCTracksEta5_10neg->Fill(eta);
+        MCTracksp5_10neg->Fill(p);
+      }
+
+
+
 
 
       // Count disks "touched" by the track
@@ -211,15 +245,31 @@ else {
 
       if(nDisksHasHits>=4) {   //Track is trackable if has left hits on at least 4 disks
 
-        MFTAccepEtaZ->Fill(thisTrack->GetStartVertexCoordinatesZ(),thisTrack->GetRapidity());
+        MFTAccepEtaZ->Fill(z,eta);
 
 
         bool wasFound = allFoundTracksLTF[event][trID] | allFoundTracksCA[event][trID];
 
         if(wasFound) {
           MFTTrackspT->Fill(thisTrack->GetPt());
-          MFTTracksp->Fill(thisTrack->GetP());
-          MFTTrackRap->Fill(thisTrack->GetRapidity());
+          MFTTracksp->Fill(p);
+          MFTTrackRap->Fill(eta);
+
+
+          if( (z>-5) & (z<5) ) {
+            MFTTracksEta5->Fill(eta);
+            MFTTracksp5->Fill(p);
+          }
+          if( (z>5) & (z<10) ) {
+            MFTTracksEta5_10pos->Fill(eta);
+            MFTTracksp5_10pos->Fill(p);
+          }
+          if( (z>-10) & (z<-5) ) {
+            MFTTracksEta5_10neg->Fill(eta);
+            MFTTracksp5_10neg->Fill(p);
+          }
+
+
           if(allFoundTracksLTF[event][trID]) {
             LTFTrackspT->Fill(thisTrack->GetPt());
             LTFTracksp->Fill(thisTrack->GetP());
@@ -252,6 +302,18 @@ TH1F MFTEfficiencyRap = (*MFTTrackRap) / (*MCTrackRap);
 TH2F MFTTrackerEfficiency = (*MFTTrackedEtaZ) / (*MFTAccepEtaZ);
 TH2F MFTEfficiency2D = (*MFTTrackedEtaZ) / (*MCTracksEtaZ);
 
+TH1F MFTEffsEta5 = (*MFTTracksEta5)/(*MCTracksEta5);
+TH1F MFTEffEta5_10pos = (*MFTTracksEta5_10pos)/(*MCTracksEta5_10pos);
+TH1F MFTEffEta5_10neg = (*MFTTracksEta5_10neg)/(*MCTracksEta5_10neg);
+
+
+TH1F MFTEffsp5 = (*MFTTracksp5)/(*MCTracksp5);
+TH1F MFTEffp5_10pos = (*MFTTracksp5_10pos)/(*MCTracksp5_10pos);
+TH1F MFTEffp5_10neg = (*MFTTracksp5_10neg)/(*MCTracksp5_10neg);
+
+
+
+
 
 
 MFTEfficiencypT.SetNameTitle("MFT Efficiency pT", "MFT Efficiency pT");
@@ -263,6 +325,20 @@ MFTTrackerEfficiency.GetXaxis()->SetTitle("Vertex PosZ [cm]");
 MFTEfficiency2D.SetNameTitle("MFT Efficiency", "MFT Efficiency");
 MFTEfficiency2D.GetXaxis()->SetTitle("Vertex PosZ [cm]");
 
+
+MFTEffsEta5.SetNameTitle("MFT Eta Efficiency5_5", "-5 cm < z < 5 cm");
+MFTEffsEta5.GetXaxis()->SetTitle("Rapidity");
+MFTEffEta5_10pos.SetNameTitle("MFT Eta Efficiency_5_10pos", "5 cm < z < 10 cm");
+MFTEffEta5_10pos.GetXaxis()->SetTitle("Rapidity");
+MFTEffEta5_10neg.SetNameTitle("MFT Eta Efficiency_10_5neg", "-10 cm < z < -5 cm");
+MFTEffEta5_10neg.GetXaxis()->SetTitle("Rapidity");
+
+MFTEffsp5.SetNameTitle("MFT P Efficiency5_5", "-5 cm < z < 5 cm");
+MFTEffsp5.GetXaxis()->SetTitle("P (GeV)");
+MFTEffp5_10pos.SetNameTitle("MFT P Efficiency_5_10pos", "5 cm < z < 10 cm");
+MFTEffp5_10pos.GetXaxis()->SetTitle("P (GeV)");
+MFTEffp5_10neg.SetNameTitle("MFT P Efficiency_10_5neg", "-10 cm < z < -5 cm");
+MFTEffp5_10neg.GetXaxis()->SetTitle("P (GeV)");
 
 // Write histograms to file
 //std::cout << "Writting histograms to file..." << std::endl;
@@ -286,6 +362,32 @@ CATrackRap->Write();
 MFTEfficiencypT.Write();
 MFTTEfficiencyp.Write();
 MFTEfficiencyRap.Write();
+
+MCTracksEta5->Write();
+MCTracksEta5_10pos->Write();
+MCTracksEta5_10neg->Write();
+
+MFTTracksEta5->Write();
+MFTTracksEta5_10pos->Write();
+MFTTracksEta5_10neg->Write();
+
+MCTracksp5->Write();
+MCTracksp5_10pos->Write();
+MCTracksp5_10neg->Write();
+
+
+MFTTracksp5->Write();
+MFTTracksp5_10pos->Write();
+MFTTracksp5_10neg->Write();
+
+MFTEffsEta5.Write();
+MFTEffEta5_10pos.Write();
+MFTEffEta5_10neg.Write();
+
+MFTEffsp5.Write();
+MFTEffp5_10pos.Write();
+MFTEffp5_10neg.Write();
+
 
 MissedlepT->Write();
 Missedp->Write();
