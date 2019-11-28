@@ -9,7 +9,7 @@ constexpr Double_t pMin = 0.1;
 constexpr Double_t etaMin = -3.9;
 constexpr Double_t etaMax = -2.0;
 
-void MFT_Tracker_inspector(const Char_t *SimFile = "o2sim.root", const Char_t *trkFile = "mfttracks.root") {
+void MFTTrackerChecker(const Char_t *SimFile = "o2sim.root", const Char_t *trkFile = "mfttracks.root") {
 
   using o2::itsmft::Hit;
   using o2::MCTrackT;
@@ -17,7 +17,7 @@ void MFT_Tracker_inspector(const Char_t *SimFile = "o2sim.root", const Char_t *t
   using o2::mft::TrackLTF;
   using eventFoundTracks = std::vector<bool>;
 
-  using trackHasHitsinDisks = std::array<bool,5>; // Disks with hits from a MFT track
+  using trackHasHitsinMFTDisks = std::array<bool,5>; // Disks with hits from a MFT track
 
   std::unique_ptr<TH1F> MCTrackspT = std::make_unique<TH1F> ("MC Tracks pT", "MC Tracks pT", 100, 0, pMax);
   std::unique_ptr<TH1F> MCTracksp = std::make_unique<TH1F> ("MC Tracks p", "MC Tracks p", 100, 0, pMax);
@@ -80,7 +80,7 @@ void MFT_Tracker_inspector(const Char_t *SimFile = "o2sim.root", const Char_t *t
 
   TFile *simFileIn = new TFile(SimFile);
   TFile *trkFileIn = new TFile(trkFile);
-  TFile outFile("MFT_eff_z.root","RECREATE");
+  TFile outFile("MFTTrackerCheck.root","RECREATE");
 
 
   TTree *o2SimTree = (TTree*) simFileIn -> Get("o2sim");
@@ -91,8 +91,8 @@ void MFT_Tracker_inspector(const Char_t *SimFile = "o2sim.root", const Char_t *t
 
   Int_t nCleanTracksLTF = 0, nCleanTracksCA = 0, nBadTracksLTF =0, nBadTracksCA = 0;
 
-  vector<Hit>* hit = nullptr;
-  o2SimTree -> SetBranchAddress("MFTHit",&hit);
+  vector<Hit>* mfthit = nullptr;
+  o2SimTree -> SetBranchAddress("MFTHit",&mfthit);
   vector<MCTrackT<float>>* mcTr = nullptr;
   o2SimTree -> SetBranchAddress("MCTrack",&mcTr);
   std::vector<o2::mft::TrackCA> trackCAVec, *trackCAVecP = &trackCAVec;
@@ -110,16 +110,18 @@ void MFT_Tracker_inspector(const Char_t *SimFile = "o2sim.root", const Char_t *t
     allFoundTracksCA[event].resize(numberOfTracksPerEvent+10,false);
   }
 
-  // 1. Loop over all reconstructed tracks to identify clean and mixed/noise tracks
+  // Part 1: Reconstructed MFT Tracks
+  //  Loop over reconstructed tracks to identify clean and mixed/noise tracks
   //   1.1 Clean tracks have at least 80% of its clusters from the same track
   //   1.2 If track is not clear it is a mixed/noise track
-  // 2. Loop over all MC events to
+  // Part 2: MC hits and tracks
   //   2.1 Identify trackable tracks (clusters in at least 4 disks)
   //   2.2 Identify successfully reconstructed tracks
   //   2.3 Fill Histograms
 
 
-  // TracksLTF - Discover reconstructed tracks
+  // Part 1: Reconstructed MFT Tracks
+  // TracksLTF - Identify reconstructed tracks
   for (const auto &trackLTF : trackLTFVec) {
   auto thisTrackMCCompLabels = trackLTF.getMCCompLabels();
   std::map<Int_t, Int_t> trkIDs;
@@ -151,61 +153,61 @@ void MFT_Tracker_inspector(const Char_t *SimFile = "o2sim.root", const Char_t *t
     nBadTracksLTF++;
   }
 
-}
+  } // Loop on TracksLTF
 
 
-// TracksCA - Discover reconstructed tracks
-for (const auto &trackCA : trackCAVec) {
-auto thisTrackMCCompLabels = trackCA.getMCCompLabels();
-std::map<Int_t, Int_t> trkIDs;
-for (auto iLabel = 0; iLabel < trackCA.getNPoints(); iLabel++) { // Count trackIDs of this track
-  auto id = thisTrackMCCompLabels[iLabel].getTrackID();
-  trkIDs[id]=trkIDs[id]+1;
-  //std::cout << thisTrackMCCompLabels[iLabel].getTrackID() << " ";
-}
-//std::cout << std::endl;
-
-Int_t thisTrkID=-1, thisTEventIDLabel=-1;
-for (auto iLabel = 0; iLabel < trackCA.getNPoints(); iLabel++) { //Decide if track was successfully tracked
-  auto id = thisTrackMCCompLabels[iLabel].getTrackID();
-  //std::cout << "ID ; count ; NPoints ; count/NPoints : "<< id << " " << trkIDs[id] << " " << trackCA.getNPoints()  << " " << 1.0*trkIDs[id]/trackCA.getNPoints() << std::endl;
-  if(1.0*trkIDs[id]/trackCA.getNPoints() >= 0.8) {
-    thisTrkID = id;
-    thisTEventIDLabel = iLabel;
+  // TracksCA - Identify reconstructed tracks
+  for (const auto &trackCA : trackCAVec) {
+  auto thisTrackMCCompLabels = trackCA.getMCCompLabels();
+  std::map<Int_t, Int_t> trkIDs;
+  for (auto iLabel = 0; iLabel < trackCA.getNPoints(); iLabel++) { // Count trackIDs of this track
+    auto id = thisTrackMCCompLabels[iLabel].getTrackID();
+    trkIDs[id]=trkIDs[id]+1;
+    //std::cout << thisTrackMCCompLabels[iLabel].getTrackID() << " ";
   }
-}
+  //std::cout << std::endl;
 
-auto eventID =  thisTrackMCCompLabels[thisTEventIDLabel].getEventID();
-//std::cout << "This TrackCA ID = " << thisTrkID << " in eventID = " << eventID << std::endl;
-if( (thisTrkID > 0 & thisTrkID != 0x7FFFFFF) & (eventID <= numberOfEvents) ) {
-  allFoundTracksCA[eventID][thisTrkID]=true;
-  nCleanTracksCA++;
-}
-else {
-  //std::cout << "Noise or Mixed TrackCA!" << std::endl;
-  nBadTracksCA++;
-}
+  Int_t thisTrkID=-1, thisTEventIDLabel=-1;
+  for (auto iLabel = 0; iLabel < trackCA.getNPoints(); iLabel++) { //Decide if track was successfully tracked
+    auto id = thisTrackMCCompLabels[iLabel].getTrackID();
+    //std::cout << "ID ; count ; NPoints ; count/NPoints : "<< id << " " << trkIDs[id] << " " << trackCA.getNPoints()  << " " << 1.0*trkIDs[id]/trackCA.getNPoints() << std::endl;
+    if(1.0*trkIDs[id]/trackCA.getNPoints() >= 0.8) {
+      thisTrkID = id;
+      thisTEventIDLabel = iLabel;
+    }
+  }
 
-}
+  auto eventID =  thisTrackMCCompLabels[thisTEventIDLabel].getEventID();
+  //std::cout << "This TrackCA ID = " << thisTrkID << " in eventID = " << eventID << std::endl;
+  if( (thisTrkID > 0 & thisTrkID != 0x7FFFFFF) & (eventID <= numberOfEvents) ) {
+    allFoundTracksCA[eventID][thisTrkID]=true;
+    nCleanTracksCA++;
+  }
+  else {
+    //std::cout << "Noise or Mixed TrackCA!" << std::endl;
+    nBadTracksCA++;
+  }
+
+  } // Loop on TracksCA
 
 
-
+  // Part 2: MC hits and tracks
   for (Int_t event=0; event<numberOfEvents ; event++) { // Loop over events in o2sim
     //std::cout << "Loop over events in o2sim. Event = " << event << std::endl;
     o2SimTree -> GetEntry(event);
-    Int_t nbH = hit->size(); // Number of hits in this event
-    //std::cout << "Event " << event << " has " << numberOfTracksPerEvent << " tracks and " << nbH << " hits\n";
+    Int_t nMFTHits = mfthit->size(); // Number of mft hits in this event
+    //std::cout << "Event " << event << " has " << numberOfTracksPerEvent << " tracks and " << nMFTHits << " hits\n";
 
-    std::vector<trackHasHitsinDisks> trackLayersHits(numberOfTracksPerEvent+10,{0,0,0,0,0}); //
+    std::vector<trackHasHitsinMFTDisks> mcTrackHasHitsInMFTDisks(numberOfTracksPerEvent+10,{0,0,0,0,0}); //
 
-    //std::cout << "Loop over " << nbH << " hits to discover trackable tracks in event " <<  event << std::endl;
-    for (Int_t n_hit=0 ; n_hit < nbH; n_hit++) { // Loop over hits to discover trackable tracks
-      Hit* hitp = &(*hit).at(n_hit);
+    //std::cout << "Loop over " << nMFTHits << " mfthits to identify trackable MFT tracks in event " <<  event << std::endl;
+    for (Int_t n_hit=0 ; n_hit < nMFTHits; n_hit++) { // Loop over mfthits to identify trackable tracks
+      Hit* hitp = &(*mfthit).at(n_hit);
       Int_t trID = hitp->GetTrackID(); // ID of the tracks having given the hit
       //std::cout << "n_hit = " << n_hit << " ** trID = " << trID << std::endl;
 
-      Float_t z = hitp->GetZ(); // Z position of the hit = discover disk.
-      for(auto disk: {0,1,2,3,4}) if( z < MFTLayerZ[disk*2] + .3  & z > MFTLayerZ[disk*2+1] -.3 ) trackLayersHits[trID][disk] = true;
+      Float_t z = hitp->GetZ(); // Z position of the hit => Identify MFT disk.
+      for(auto disk: {0,1,2,3,4}) if( z < MFTLayerZ[disk*2] + .3  & z > MFTLayerZ[disk*2+1] -.3 ) mcTrackHasHitsInMFTDisks[trID][disk] = true;
       }
 
     for (Int_t trID=0 ; trID < numberOfTracksPerEvent; trID++) { // Loop on tracks
@@ -238,12 +240,12 @@ else {
 
 
       // Count disks "touched" by the track
-      int nDisksHasHits = 0;
-      for(auto disk: {0,1,2,3,4}) nDisksHasHits+= int(trackLayersHits[trID][disk]);
-      Trackablility->Fill(nDisksHasHits);
-      //std::cout << "nDisksHasHits = " << nDisksHasHits; // << std::endl;
+      int nMFTDisksHasHits = 0;
+      for(auto disk: {0,1,2,3,4}) nMFTDisksHasHits+= int(mcTrackHasHitsInMFTDisks[trID][disk]);
+      Trackablility->Fill(nMFTDisksHasHits);
+      //std::cout << "nMFTDisksHasHits = " << nMFTDisksHasHits; // << std::endl;
 
-      if(nDisksHasHits>=4) {   //Track is trackable if has left hits on at least 4 disks
+      if(nMFTDisksHasHits>=4) {   //Track is trackable if has left hits on at least 4 disks
 
         MFTAccepEtaZ->Fill(z,eta);
 
@@ -293,7 +295,8 @@ else {
 
     } // end Loop on tracks
     //std::cout << "Finished event " << event << std::endl;
-  } // end loop over events
+    } // end loop over events
+
 
 //std::cout << "Building efficiencies histos..." << std::endl;
 TH1F MFTEfficiencypT = (*MFTTrackspT)/ (*MCTrackspT);
@@ -310,10 +313,6 @@ TH1F MFTEffEta5_10neg = (*MFTTracksEta5_10neg)/(*MCTracksEta5_10neg);
 TH1F MFTEffsp5 = (*MFTTracksp5)/(*MCTracksp5);
 TH1F MFTEffp5_10pos = (*MFTTracksp5_10pos)/(*MCTracksp5_10pos);
 TH1F MFTEffp5_10neg = (*MFTTracksp5_10neg)/(*MCTracksp5_10neg);
-
-
-
-
 
 
 MFTEfficiencypT.SetNameTitle("MFT Efficiency pT", "MFT Efficiency pT");
