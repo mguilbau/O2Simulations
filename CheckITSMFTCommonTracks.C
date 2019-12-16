@@ -26,32 +26,42 @@ void CheckITSMFTCommonTracks(const Char_t *SimFile = "o2sim.root", const Char_t 
 
 
   std::unique_ptr<TH1F> MCTrackspT = std::make_unique<TH1F> ("MC Tracks pT", "MC Tracks pT", 100, 0, pMax);
+  MCTrackspT->GetXaxis()->SetTitle("Transverse p");
   std::unique_ptr<TH1F> MCTracksp = std::make_unique<TH1F> ("MC Tracks p", "MC Tracks p", 100, 0, pMax);
-  std::unique_ptr<TH1F> MCTrackRap = std::make_unique<TH1F> ("MC Tracks eta", "MC Tracks Rapidity", 100, etaMin, etaMax);
+  MCTracksp->GetXaxis()->SetTitle("Total p");
+  std::unique_ptr<TH1F> MCTrackRap = std::make_unique<TH1F> ("MC Tracks eta", "MC Tracks Pseudorapidity", 100, etaMin, etaMax);
+  MCTrackRap->GetXaxis()->SetTitle("Pseudorapidity");
 
   std::unique_ptr<TH1F> MFTTrackspT = std::make_unique<TH1F> ("MFT Tracks pT", "MFT Tracks pT", 100, 0, pMax);
+  MFTTrackspT->GetXaxis()->SetTitle("Transverse p");
   std::unique_ptr<TH1F> MFTTracksp = std::make_unique<TH1F> ("MFT Tracks p", "MFT Tracks p", 100, 0, pMax);
-  std::unique_ptr<TH1F> MFTTrackRap = std::make_unique<TH1F> ("MFT Tracks eta", "MFT Tracks Rapidity", 100, etaMin, etaMax);
+  MFTTracksp->GetXaxis()->SetTitle("Total p");
+  std::unique_ptr<TH1F> MFTTrackRap = std::make_unique<TH1F> ("MFT Tracks eta", "MFT Tracks Pseudorapidity", 100, etaMin, etaMax);
+  MFTTrackRap->GetXaxis()->SetTitle("Pseudorapidity");
 
 
   std::unique_ptr<TH1I> MFTTrackablility = std::make_unique<TH1I> ("MFTTrackablility", "In how many MFT disks the tracks has hits", 6, 0, 6);
+  MFTTrackablility->GetXaxis()->SetTitle("Number of MFT disks");
   std::unique_ptr<TH1I> ITSTrackablility = std::make_unique<TH1I> ("ITSTrackablility", "In how many ITS Layers the tracks has hits", 4, 0, 4);
-
+  ITSTrackablility->GetXaxis()->SetTitle("Number of ITS layers");
 
 
 
   //Histos for Trackables
   std::unique_ptr<TH1F> TrackablepT = std::make_unique<TH1F> ("Trackables Tracks pT", "Trackables Tracks pT", 100, 0, pMax);
+  TrackablepT->GetXaxis()->SetTitle("Transverse p");
   std::unique_ptr<TH1F> Trackablep = std::make_unique<TH1F> ("Trackables Tracks p", "Trackables Tracks p", 100, 0, pMax);
+  Trackablep->GetXaxis()->SetTitle("Total p");
   std::unique_ptr<TH1F> TrackableRap = std::make_unique<TH1F> ("Trackables Tracks eta", "Trackables Rapidity", 100, etaMin, etaMax);
+  TrackableRap->GetXaxis()->SetTitle("Pseudorapidity");
 
 
   //2D Histos
   std::unique_ptr<TH2F> MFTTrackedEtaZ = std::make_unique<TH2F> ("MFT_Tracked_eta_z", "Reconstructed Tracks: Rapidity vs zVertex", 31, -15, 16, 25, etaMin, etaMax);
   MFTTrackedEtaZ->GetXaxis()->SetTitle("Vertex PosZ [cm]");
-  std::unique_ptr<TH2F> MFTAccepEtaZ = std::make_unique<TH2F> ("MFT_Acceptance_eta_z", "MFT Acceptance (Trackables): Rapidity vs zVertex", 31, -15, 16, 25, etaMin, etaMax);
+  std::unique_ptr<TH2F> MFTAccepEtaZ = std::make_unique<TH2F> ("MFT_Acceptance_eta_z", "MFT Acceptance (Trackables): Pseudorapidity vs zVertex", 31, -15, 16, 25, etaMin, etaMax);
   MFTAccepEtaZ->GetXaxis()->SetTitle("Vertex PosZ [cm]");
-  std::unique_ptr<TH2F> MCTracksEtaZ = std::make_unique<TH2F> ("MCTracks_eta_z", "MC Tracks: Rapidity vs zVertex", 31, -15, 16, 25, etaMin, etaMax);
+  std::unique_ptr<TH2F> MCTracksEtaZ = std::make_unique<TH2F> ("MCTracks_eta_z", "MC Tracks: Pseudorapidity vs zVertex", 31, -15, 16, 25, etaMin, etaMax);
   MCTracksEtaZ->GetXaxis()->SetTitle("Vertex PosZ [cm]");
 
   std::unique_ptr<TH2F> MFTandITSLInnerBarrel = std::make_unique<TH2F> ("MFT and ITSInner", "MFT Trackables with hits in all ITS Inner Layers", 25, -5, 20, 25, etaMin, etaMax);
@@ -315,9 +325,17 @@ MFTandOneITSLInnerLayer->Write();
 outFile.Close();
 
 Int_t totalRecoMFTTracks = nCleanTracksLTF + nCleanTracksCA + nBadTracksLTF + nBadTracksCA;
-std::cout << "Total Reconstructed MFT Tracks = " << totalRecoMFTTracks << std::endl;
+Int_t totalCleanMFTTracks = nCleanTracksLTF + nCleanTracksCA;
+Int_t totalBadMFTTracks = nBadTracksLTF + nBadTracksCA;
+std::cout << "---------------------------------------------------" << std::endl;
+std::cout << "Number of reconstructed MFT Tracks = " << totalRecoMFTTracks << std::endl;
+std::cout << "Number of clean MFT Tracks = " << totalCleanMFTTracks << " (" << 100.f*totalCleanMFTTracks/(totalRecoMFTTracks) << " %)" << std::endl;
+std::cout << "Number of mixed MFT Tracks = " << totalBadMFTTracks << " (" << 100.f*totalBadMFTTracks/(totalRecoMFTTracks) << " %)" << std::endl;
+std::cout << "---------------------------------------------------" << std::endl;
 std::cout << "nCleanTracksLTF = " << nCleanTracksLTF << std::endl;
 std::cout << "nCleanTracksCA = " << nCleanTracksCA << std::endl;
-std::cout << "nBadTracksLTF = " << nBadTracksLTF  << " (" << 100.f*nBadTracksLTF/(nCleanTracksLTF+nBadTracksLTF) << " %)" << std::endl;
-std::cout << "nBadTracksCA = " << nBadTracksCA << " (" << 100.f*nBadTracksCA/(nCleanTracksCA+nBadTracksCA) << " %)" << std::endl;
+std::cout << "nBadTracksLTF = " << nBadTracksLTF  << " (" << 100.f*nBadTracksLTF/(nCleanTracksLTF+nBadTracksLTF) << " % of LTF tracks)" << std::endl;
+std::cout << "nBadTracksCA = " << nBadTracksCA << " (" << 100.f*nBadTracksCA/(nCleanTracksCA+nBadTracksCA) << " % of CA tracks)" << std::endl;
+std::cout << "---------------------------------------------------" << std::endl;
+
 }
