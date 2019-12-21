@@ -4,10 +4,10 @@
 
 //constexpr Double_t MFTLayerZ[] = {-45.3, -46.7, -48.6, -50.0, -52.4, -53.8, -67.7, -69.1, -76.1, -77.5};
 
-constexpr Double_t pMax = 5;
-constexpr Double_t pMin = 0.1;
-constexpr Double_t etaMin = -3.9;
-constexpr Double_t etaMax = -2.0;
+constexpr Double_t pMax = 4;
+constexpr Double_t pMin = 0;
+constexpr Double_t etaMin = -4.0;
+constexpr Double_t etaMax = -1.9;
 
 void MFTTrackerChecker(const Char_t *SimFile = "o2sim.root", const Char_t *trkFile = "mfttracks.root") {
 
@@ -20,33 +20,33 @@ void MFTTrackerChecker(const Char_t *SimFile = "o2sim.root", const Char_t *trkFi
 
   using trackHasHitsinMFTDisks = std::array<bool,5>; // Disks with hits from a MFT track
 
-  std::unique_ptr<TH1F> MCTrackspT = std::make_unique<TH1F> ("MC Tracks pT", "MC Tracks pT", 100, 0, pMax);
+  std::unique_ptr<TH1F> MCTrackspT = std::make_unique<TH1F> ("MC Tracks pT", "MC Tracks pT", 100, pMin, pMax);
   MCTrackspT->GetXaxis()->SetTitle("Transverse p");
-  std::unique_ptr<TH1F> MCTracksp = std::make_unique<TH1F> ("MC Tracks p", "MC Tracks p", 100, 0, pMax);
+  std::unique_ptr<TH1F> MCTracksp = std::make_unique<TH1F> ("MC Tracks p", "MC Tracks p", 100, pMin, pMax);
   MCTracksp->GetXaxis()->SetTitle("Total p");
-  std::unique_ptr<TH1F> MCTrackRap = std::make_unique<TH1F> ("MC Tracks eta", "MC Tracks Rapidity", 100, etaMin, etaMax);
-  MCTrackRap->GetXaxis()->SetTitle("Pseudorapidity");
+  std::unique_ptr<TH1F> MCTrackEta = std::make_unique<TH1F> ("MC Tracks eta", "MC Tracks Pseudorapidity", 100, etaMin, etaMax);
+  MCTrackEta->GetXaxis()->SetTitle("Pseudorapidity");
 
-  std::unique_ptr<TH1F> MFTTrackspT = std::make_unique<TH1F> ("MFT Tracks pT", "MFT Tracks pT", 100, 0, pMax);
+  std::unique_ptr<TH1F> MFTTrackspT = std::make_unique<TH1F> ("MFT Tracks pT", "MFT Tracks pT", 100, pMin, pMax);
   MFTTrackspT->GetXaxis()->SetTitle("Transverse p");
-  std::unique_ptr<TH1F> MFTTracksp = std::make_unique<TH1F> ("MFT Tracks p", "MFT Tracks p", 100, 0, pMax);
+  std::unique_ptr<TH1F> MFTTracksp = std::make_unique<TH1F> ("MFT Tracks p", "MFT Tracks p", 100, pMin, pMax);
   MFTTracksp->GetXaxis()->SetTitle("Total p");
-  std::unique_ptr<TH1F> MFTTrackRap = std::make_unique<TH1F> ("MFT Tracks eta", "MFT Tracks Rapidity", 100, etaMin, etaMax);
-  MFTTrackRap->GetXaxis()->SetTitle("Pseudorapidity");
+  std::unique_ptr<TH1F> MFTTrackEta = std::make_unique<TH1F> ("MFT Tracks eta", "MFT Tracks Pseudorapidity", 100, etaMin, etaMax);
+  MFTTrackEta->GetXaxis()->SetTitle("Pseudorapidity");
 
-  std::unique_ptr<TH1F> LTFTrackspT = std::make_unique<TH1F> ("LTF Tracks pT", "LTF Tracks pT", 100, 0, pMax);
+  std::unique_ptr<TH1F> LTFTrackspT = std::make_unique<TH1F> ("LTF Tracks pT", "LTF Tracks pT", 100, pMin, pMax);
   LTFTrackspT->GetXaxis()->SetTitle("Transverse p");
-  std::unique_ptr<TH1F> LTFTracksp = std::make_unique<TH1F> ("LTF Tracks p", "LTF Tracks p", 100, 0, pMax);
+  std::unique_ptr<TH1F> LTFTracksp = std::make_unique<TH1F> ("LTF Tracks p", "LTF Tracks p", 100, pMin, pMax);
   LTFTracksp->GetXaxis()->SetTitle("Total p");
-  std::unique_ptr<TH1F> LTFTrackRap = std::make_unique<TH1F> ("LTF Tracks eta", "LTF Tracks Rapidity", 100, etaMin, etaMax);
-  LTFTrackRap->GetXaxis()->SetTitle("Pseudorapidity");
+  std::unique_ptr<TH1F> LTFTrackEta = std::make_unique<TH1F> ("LTF Tracks eta", "LTF Tracks Pseudorapidity", 100, etaMin, etaMax);
+  LTFTrackEta->GetXaxis()->SetTitle("Pseudorapidity");
 
-  std::unique_ptr<TH1F> CATrackspT = std::make_unique<TH1F> ("CA Tracks pT", "CA Tracks pT", 100, 0, pMax);
+  std::unique_ptr<TH1F> CATrackspT = std::make_unique<TH1F> ("CA Tracks pT", "CA Tracks pT", 100, pMin, pMax);
   CATrackspT->GetXaxis()->SetTitle("Transverse p");
-  std::unique_ptr<TH1F> CATracksp = std::make_unique<TH1F> ("CA Tracks p", "CA Tracks p", 100, 0, pMax);
+  std::unique_ptr<TH1F> CATracksp = std::make_unique<TH1F> ("CA Tracks p", "CA Tracks p", 100, pMin, pMax);
   CATracksp->GetXaxis()->SetTitle("Total p");
-  std::unique_ptr<TH1F> CATrackRap = std::make_unique<TH1F> ("CA Tracks eta", "LTF Tracks Rapidity", 100, etaMin, etaMax);
-  CATrackRap->GetXaxis()->SetTitle("Pseudorapidity");
+  std::unique_ptr<TH1F> CATrackEta = std::make_unique<TH1F> ("CA Tracks eta", "LTF Tracks Pseudorapidity", 100, etaMin, etaMax);
+  CATrackEta->GetXaxis()->SetTitle("Pseudorapidity");
 
   std::unique_ptr<TH1F> MCTracksEta5 = std::make_unique<TH1F> ("MC Tracks 5 eta", "-5 cm < zVertex < 5 cm", 100, etaMin, etaMax);
   MCTracksEta5->GetXaxis()->SetTitle("Pseudorapidity");
@@ -63,42 +63,42 @@ void MFTTrackerChecker(const Char_t *SimFile = "o2sim.root", const Char_t *trkFi
   MFTTracksEta5_10neg->GetXaxis()->SetTitle("Pseudorapidity");
 
 
-  std::unique_ptr<TH1F> MCTracksp5 = std::make_unique<TH1F> ("MC Tracks 5 p", "-5 cm < zVertex < 5 cm", 100, 0, pMax);
+  std::unique_ptr<TH1F> MCTracksp5 = std::make_unique<TH1F> ("MC Tracks 5 p", "-5 cm < zVertex < 5 cm", 100, pMin, pMax);
   MCTracksp5->GetXaxis()->SetTitle("Total p");
-  std::unique_ptr<TH1F> MCTracksp5_10pos = std::make_unique<TH1F> ("MC Tracks -5 -10 p", "-10 cm < zVertex < -5 cm", 100, 0, pMax);
+  std::unique_ptr<TH1F> MCTracksp5_10pos = std::make_unique<TH1F> ("MC Tracks -5 -10 p", "-10 cm < zVertex < -5 cm", 100, pMin, pMax);
   MCTracksp5_10pos->GetXaxis()->SetTitle("Total p");
-  std::unique_ptr<TH1F> MCTracksp5_10neg = std::make_unique<TH1F> ("MC Tracks 5 10 p", "5 cm < zVertex < 10 cm", 100, 0, pMax);
+  std::unique_ptr<TH1F> MCTracksp5_10neg = std::make_unique<TH1F> ("MC Tracks 5 10 p", "5 cm < zVertex < 10 cm", 100, pMin, pMax);
   MCTracksp5_10neg->GetXaxis()->SetTitle("Total p");
 
-  std::unique_ptr<TH1F> MFTTracksp5 = std::make_unique<TH1F> ("MFT Tracks 5 p", "-5 cm < zVertex < 5 cm", 100, 0, pMax);
+  std::unique_ptr<TH1F> MFTTracksp5 = std::make_unique<TH1F> ("MFT Tracks 5 p", "-5 cm < zVertex < 5 cm", 100, pMin, pMax);
   MFTTracksp5->GetXaxis()->SetTitle("Total p");
-  std::unique_ptr<TH1F> MFTTracksp5_10pos = std::make_unique<TH1F> ("MFT Tracks -5 -10 p", "-10 cm < zVertex < -5 cm", 100, 0, pMax);
+  std::unique_ptr<TH1F> MFTTracksp5_10pos = std::make_unique<TH1F> ("MFT Tracks -5 -10 p", "-10 cm < zVertex < -5 cm", 100, pMin, pMax);
   MFTTracksp5_10pos->GetXaxis()->SetTitle("Total p");
-  std::unique_ptr<TH1F> MFTTracksp5_10neg = std::make_unique<TH1F> ("MFT Tracks 5 10 p", "5 cm < zVertex < 10 cm", 100, 0, pMax);
+  std::unique_ptr<TH1F> MFTTracksp5_10neg = std::make_unique<TH1F> ("MFT Tracks 5 10 p", "5 cm < zVertex < 10 cm", 100, pMin, pMax);
   MFTTracksp5_10neg->GetXaxis()->SetTitle("Total p");
 
   std::unique_ptr<TH1I> Trackablility = std::make_unique<TH1I> ("Trackablility", "In how many disks the tracks has hits", 6, 0, 6);
   Trackablility->GetXaxis()->SetTitle("Number of disks");
 
   //Histos for Missed (missed tracks that could be tracked)
-  std::unique_ptr<TH1F> MissedlepT = std::make_unique<TH1F> ("Missed Tracks pT", "Missed Tracks pT", 100, 0, pMax);
-  std::unique_ptr<TH1F> Missedp = std::make_unique<TH1F> ("Missed Tracks p", "Missed Tracks p", 100, 0, pMax);
-  std::unique_ptr<TH1F> MissedRap = std::make_unique<TH1F> ("Missed Tracks eta", "Missed Rapidity", 100, etaMin, etaMax);
+  std::unique_ptr<TH1F> MissedlepT = std::make_unique<TH1F> ("Missed Tracks pT", "Missed Tracks pT", 100, pMin, pMax);
+  std::unique_ptr<TH1F> Missedp = std::make_unique<TH1F> ("Missed Tracks p", "Missed Tracks p", 100, pMin, pMax);
+  std::unique_ptr<TH1F> MissedEta = std::make_unique<TH1F> ("Missed Tracks eta", "Missed Pseudorapidity", 100, etaMin, etaMax);
 
   //Histos for Trackables
-  std::unique_ptr<TH1F> TrackablepT = std::make_unique<TH1F> ("Trackables Tracks pT", "Trackables Tracks pT", 100, 0, pMax);
+  std::unique_ptr<TH1F> TrackablepT = std::make_unique<TH1F> ("Trackables Tracks pT", "Trackables Tracks pT", 100, pMin, pMax);
   TrackablepT->GetXaxis()->SetTitle("Transverse p");
-  std::unique_ptr<TH1F> Trackablep = std::make_unique<TH1F> ("Trackables Tracks p", "Trackables Tracks p", 100, 0, pMax);
+  std::unique_ptr<TH1F> Trackablep = std::make_unique<TH1F> ("Trackables Tracks p", "Trackables Tracks p", 100, pMin, pMax);
   Trackablep->GetXaxis()->SetTitle("Total p");
-  std::unique_ptr<TH1F> TrackableRap = std::make_unique<TH1F> ("Trackables Tracks eta", "Trackables Rapidity", 100, etaMin, etaMax);
-  TrackableRap->GetXaxis()->SetTitle("Pseudorapidity");
+  std::unique_ptr<TH1F> TrackableEta = std::make_unique<TH1F> ("Trackables Tracks eta", "Trackables Pseudorapidity", 100, etaMin, etaMax);
+  TrackableEta->GetXaxis()->SetTitle("Pseudorapidity");
 
   //2D Histos
   std::unique_ptr<TH2F> MFTTrackedEtaZ = std::make_unique<TH2F> ("MFT_Tracked_eta_z", "Reconstructed Tracks", 31, -15, 16, 25, etaMin, etaMax);
   MFTTrackedEtaZ->GetXaxis()->SetTitle("Vertex PosZ [cm]");
   std::unique_ptr<TH2F> MFTTrackablesEtaZ = std::make_unique<TH2F> ("MFT_Trackables_eta_z", "MFT Trackables:", 31, -15, 16, 25, etaMin, etaMax);
   MFTTrackablesEtaZ->GetXaxis()->SetTitle("Vertex PosZ [cm]");
-  std::unique_ptr<TH2F> MCTracksEtaZ = std::make_unique<TH2F> ("MCTracks_eta_z", "MC Tracks: Rapidity vs zVertex", 31, -15, 16, 25, etaMin, etaMax);
+  std::unique_ptr<TH2F> MCTracksEtaZ = std::make_unique<TH2F> ("MCTracks_eta_z", "MC Tracks: Pseudorapidity vs zVertex", 31, -15, 16, 25, etaMin, etaMax);
   MCTracksEtaZ->GetXaxis()->SetTitle("Vertex PosZ [cm]");
 
 
@@ -135,7 +135,7 @@ void MFTTrackerChecker(const Char_t *SimFile = "o2sim.root", const Char_t *trkFi
   for (auto event = 0 ; event < numberOfEvents ; event++) { // Resize vector to accomodate found status of all tracks in all events
     o2SimTree -> GetEntry(event);
     auto numberOfTracksThisEvent = eventHeader->getMCEventStats().getNKeptTracks();
-    //std::cout << "Resizing allFoundTracks for event " << event <<  " with ntracks = " << numberOfTracksThisEvent << std::endl;
+    std::cout << "Resizing allFoundTracks for event " << event <<  " with ntracks = " << numberOfTracksThisEvent << std::endl;
     allFoundTracksLTF[event].resize(numberOfTracksThisEvent,false);
     allFoundTracksCA[event].resize(numberOfTracksThisEvent,false);
   }
@@ -152,7 +152,7 @@ void MFTTrackerChecker(const Char_t *SimFile = "o2sim.root", const Char_t *trkFi
 
 
   // Part 1: Reconstructed MFT Tracks
-  // std::cout << "Starting Part 1: Reconstructed MFT Tracks!" << std::endl;
+   std::cout << "Starting Part 1: Reconstructed MFT Tracks!" << std::endl;
   // TracksLTF - Identify reconstructed tracks
   for (const auto &trackLTF : trackLTFVec) {
   auto thisTrackMCCompLabels = trackLTF.getMCCompLabels();
@@ -224,7 +224,7 @@ void MFTTrackerChecker(const Char_t *SimFile = "o2sim.root", const Char_t *trkFi
 
 
   // Part 2: MC hits and tracks
-  //std::cout << "Starting Part 2: MC hits and tracks!" << std::endl;
+  std::cout << "Starting Part 2: MC hits and tracks!" << std::endl;
   for (Int_t event=0; event<numberOfEvents ; event++) { // Loop over events in o2sim
     //std::cout << "Loop over events in o2sim. Event = " << event << std::endl;
     o2SimTree -> GetEntry(event);
@@ -233,7 +233,7 @@ void MFTTrackerChecker(const Char_t *SimFile = "o2sim.root", const Char_t *trkFi
 
     std::vector<trackHasHitsinMFTDisks> mcTrackHasHitsInMFTDisks(eventHeader->getMCEventStats().getNKeptTracks(),{0,0,0,0,0}); //
 
-    //std::cout << "Loop over " << nMFTHits << " mfthits to identify trackable MFT tracks in event " <<  event << std::endl;
+    std::cout << "Loop over " << nMFTHits << " mfthits to identify trackable MFT tracks in event " <<  event << std::endl;
     for (Int_t n_hit=0 ; n_hit < nMFTHits; n_hit++) { // Loop over mfthits to identify trackable tracks
       Hit* hitp = &(*mfthit).at(n_hit);
       Int_t trID = hitp->GetTrackID(); // ID of the tracks having given the hit
@@ -249,11 +249,12 @@ void MFTTrackerChecker(const Char_t *SimFile = "o2sim.root", const Char_t *trkFi
       //fill MC histograms
       MCTrackT<float>* thisTrack =  &(*mcTr)[trID];
       auto z = thisTrack->GetStartVertexCoordinatesZ();
-      auto eta = thisTrack->GetRapidity();
       auto p = thisTrack->GetP();
-      MCTrackspT->Fill(thisTrack->GetPt());
+      auto pt = thisTrack->GetPt();
+      auto eta = atanh (thisTrack->GetStartVertexMomentumZ()/p); // eta;
+      MCTrackspT->Fill(pt);
       MCTracksp->Fill(p);
-      MCTrackRap->Fill(eta);
+      MCTrackEta->Fill(eta);
       MCTracksEtaZ->Fill(z,eta);
       if( (z>-5) & (z<5) ) {
         MCTracksEta5->Fill(eta);
@@ -278,12 +279,17 @@ void MFTTrackerChecker(const Char_t *SimFile = "o2sim.root", const Char_t *trkFi
 
         MFTTrackablesEtaZ->Fill(z,eta);
 
+        TrackablepT->Fill(pt);
+        Trackablep->Fill(p);
+        TrackableEta->Fill(eta);
+
+
         bool wasFound = allFoundTracksLTF[event][trID] | allFoundTracksCA[event][trID];
 
         if(wasFound) {
-          MFTTrackspT->Fill(thisTrack->GetPt());
+          MFTTrackspT->Fill(pt);
           MFTTracksp->Fill(p);
-          MFTTrackRap->Fill(eta);
+          MFTTrackEta->Fill(eta);
 
 
           if( (z>-5) & (z<5) ) {
@@ -303,21 +309,21 @@ void MFTTrackerChecker(const Char_t *SimFile = "o2sim.root", const Char_t *trkFi
           if(allFoundTracksLTF[event][trID]) {
             LTFTrackspT->Fill(thisTrack->GetPt());
             LTFTracksp->Fill(thisTrack->GetP());
-            LTFTrackRap->Fill(thisTrack->GetRapidity());
-            MFTTrackedEtaZ->Fill(thisTrack->GetStartVertexCoordinatesZ(),thisTrack->GetRapidity());
+            LTFTrackEta->Fill(eta);
+            MFTTrackedEtaZ->Fill(thisTrack->GetStartVertexCoordinatesZ(),eta);
 
 
           }
           if(allFoundTracksCA[event][trID]) {
             CATrackspT->Fill(thisTrack->GetPt());
             CATracksp->Fill(thisTrack->GetP());
-            CATrackRap->Fill(thisTrack->GetRapidity());
+            CATrackEta->Fill(eta);
           }
         }
       } else {  // Fill histograms for Missed Tracks
         MissedlepT->Fill(thisTrack->GetPt());
         Missedp->Fill(thisTrack->GetP());
-        MissedRap->Fill(thisTrack->GetRapidity());
+        MissedEta->Fill(eta);
       }
     //std::cout << " Finished Track " << trID << std::endl;
 
@@ -327,9 +333,9 @@ void MFTTrackerChecker(const Char_t *SimFile = "o2sim.root", const Char_t *trkFi
 
 // Part 3: Calculate Efficiencies
 //std::cout << "Building efficiencies histos..." << std::endl;
-TH1F MFTEfficiencypT = (*MFTTrackspT)/ (*MCTrackspT);
-TH1F MFTTEfficiencyp = (*MFTTracksp) / (*MCTracksp);
-TH1F MFTEfficiencyRap = (*MFTTrackRap) / (*MCTrackRap);
+TH1F MFTEfficiencypT = (*MFTTrackspT)/ (*TrackablepT);
+TH1F MFTTEfficiencyp = (*MFTTracksp) / (*Trackablep);
+TH1F MFTEfficiencyEta = (*MFTTrackEta) / (*TrackableEta);
 TH2F MFTTrackerEfficiency = (*MFTTrackedEtaZ) / (*MFTTrackablesEtaZ);
 TH2F MFTEfficiency2D = (*MFTTrackedEtaZ) / (*MCTracksEtaZ);
 TH2F MFTAcceptance = (*MFTTrackablesEtaZ) / (*MCTracksEtaZ);
@@ -346,7 +352,7 @@ TH1F MFTEffp5_10neg = (*MFTTracksp5_10neg)/(*MCTracksp5_10neg);
 
 MFTEfficiencypT.SetNameTitle("MFT Efficiency pT", "MFT Efficiency pT");
 MFTTEfficiencyp.SetNameTitle("MFT Efficiency p", "MFT Efficiency p");
-MFTEfficiencyRap.SetNameTitle("MFT Efficiency eta", "MFT Efficiency Rapidity");
+MFTEfficiencyEta.SetNameTitle("MFT Efficiency eta", "MFT Efficiency Pseudorapidity");
 MFTTrackerEfficiency.SetNameTitle("MFT Tracker Efficiency", "MFT Tracker Efficiency");
 MFTTrackerEfficiency.GetXaxis()->SetTitle("Vertex PosZ [cm]");
 
@@ -357,11 +363,11 @@ MFTAcceptance.SetNameTitle("MFT Acceptance", "MFT Acceptance");
 MFTAcceptance.GetXaxis()->SetTitle("Vertex PosZ [cm]");
 
 MFTEffsEta5.SetNameTitle("MFT Eta Efficiency5_5", "-5 cm < z < 5 cm");
-MFTEffsEta5.GetXaxis()->SetTitle("Rapidity");
+MFTEffsEta5.GetXaxis()->SetTitle("Pseudorapidity");
 MFTEffEta5_10pos.SetNameTitle("MFT Eta Efficiency_5_10pos", "5 cm < z < 10 cm");
-MFTEffEta5_10pos.GetXaxis()->SetTitle("Rapidity");
+MFTEffEta5_10pos.GetXaxis()->SetTitle("Pseudorapidity");
 MFTEffEta5_10neg.SetNameTitle("MFT Eta Efficiency_10_5neg", "-10 cm < z < -5 cm");
-MFTEffEta5_10neg.GetXaxis()->SetTitle("Rapidity");
+MFTEffEta5_10neg.GetXaxis()->SetTitle("Pseudorapidity");
 
 MFTEffsp5.SetNameTitle("MFT P Efficiency5_5", "-5 cm < z < 5 cm");
 MFTEffsp5.GetXaxis()->SetTitle("P (GeV)");
@@ -371,11 +377,11 @@ MFTEffp5_10neg.SetNameTitle("MFT P Efficiency_10_5neg", "-10 cm < z < -5 cm");
 MFTEffp5_10neg.GetXaxis()->SetTitle("P (GeV)");
 
 MFTEffsEta5.SetNameTitle("MFT Eta Efficiency5_5", "-5 cm < z < 5 cm");
-MFTEffsEta5.GetXaxis()->SetTitle("Rapidity");
+MFTEffsEta5.GetXaxis()->SetTitle("Pseudorapidity");
 MFTEffEta5_10pos.SetNameTitle("MFT Eta Efficiency_5_10pos", "5 cm < z < 10 cm");
-MFTEffEta5_10pos.GetXaxis()->SetTitle("Rapidity");
+MFTEffEta5_10pos.GetXaxis()->SetTitle("Pseudorapidity");
 MFTEffEta5_10neg.SetNameTitle("MFT Eta Efficiency_10_5neg", "-10 cm < z < -5 cm");
-MFTEffEta5_10neg.GetXaxis()->SetTitle("Rapidity");
+MFTEffEta5_10neg.GetXaxis()->SetTitle("Pseudorapidity");
 
 
 // Stacks
@@ -394,23 +400,23 @@ mftEtaStack.Add(&MFTEffEta5_10neg,"nostack");
 
 MCTrackspT->Write();
 MCTracksp->Write();
-MCTrackRap->Write();
+MCTrackEta->Write();
 
 MFTTrackspT->Write();
 MFTTracksp->Write();
-MFTTrackRap->Write();
+MFTTrackEta->Write();
 
 LTFTrackspT->Write();
 LTFTracksp->Write();
-LTFTrackRap->Write();
+LTFTrackEta->Write();
 
 CATrackspT->Write();
 CATracksp->Write();
-CATrackRap->Write();
+CATrackEta->Write();
 
 MFTEfficiencypT.Write();
 MFTTEfficiencyp.Write();
-MFTEfficiencyRap.Write();
+MFTEfficiencyEta.Write();
 
 MCTracksEta5->Write();
 MCTracksEta5_10pos->Write();
@@ -441,10 +447,13 @@ mftEtaStack.Write();
 
 MissedlepT->Write();
 Missedp->Write();
-MissedRap->Write();
+MissedEta->Write();
 
 Trackablility->Write();
 
+TrackablepT->Write();
+Trackablep->Write();
+TrackableEta->Write();
 
 MCTracksEtaZ->SetOption("CONT4");
 MCTracksEtaZ->Write();
