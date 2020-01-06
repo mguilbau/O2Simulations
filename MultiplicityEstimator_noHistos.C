@@ -168,8 +168,8 @@ void MultiplicityEstimator_noHistos(const Char_t *SimFile = "o2sim.root", const 
       //fill MC histograms
       MCTrackT<float>* thisTrack =  &(*mcTr)[trID];
       auto z = thisTrack->GetStartVertexCoordinatesZ();
-      auto eta = thisTrack->GetRapidity();
       auto p = thisTrack->GetP();
+      auto eta = atanh (thisTrack->GetStartVertexMomentumZ()/p); // eta;
 
       // Count disks "touched" by the track
       int nMFTDisksHasHits = 0;

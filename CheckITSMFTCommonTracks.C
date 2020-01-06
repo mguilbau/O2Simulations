@@ -52,12 +52,10 @@ void CheckITSMFTCommonTracks(const Char_t *SimFile = "o2sim.root", const Char_t 
   TrackablepT->GetXaxis()->SetTitle("Transverse p");
   std::unique_ptr<TH1F> Trackablep = std::make_unique<TH1F> ("Trackables Tracks p", "Trackables Tracks p", 100, 0, pMax);
   Trackablep->GetXaxis()->SetTitle("Total p");
-  std::unique_ptr<TH1F> TrackableRap = std::make_unique<TH1F> ("Trackables Tracks eta", "Trackables Rapidity", 100, etaMin, etaMax);
-  TrackableRap->GetXaxis()->SetTitle("Pseudorapidity");
 
 
   //2D Histos
-  std::unique_ptr<TH2F> MFTTrackedEtaZ = std::make_unique<TH2F> ("MFT_Tracked_eta_z", "Reconstructed Tracks: Rapidity vs zVertex", 31, -15, 16, 25, etaMin, etaMax);
+  std::unique_ptr<TH2F> MFTTrackedEtaZ = std::make_unique<TH2F> ("MFT_Tracked_eta_z", "Reconstructed Tracks: Pseudorapidity vs zVertex", 31, -15, 16, 25, etaMin, etaMax);
   MFTTrackedEtaZ->GetXaxis()->SetTitle("Vertex PosZ [cm]");
   std::unique_ptr<TH2F> MFTAccepEtaZ = std::make_unique<TH2F> ("MFT_Acceptance_eta_z", "MFT Acceptance (Trackables): Pseudorapidity vs zVertex", 31, -15, 16, 25, etaMin, etaMax);
   MFTAccepEtaZ->GetXaxis()->SetTitle("Vertex PosZ [cm]");
@@ -233,8 +231,8 @@ void CheckITSMFTCommonTracks(const Char_t *SimFile = "o2sim.root", const Char_t 
       //fill MC histograms
       MCTrackT<float>* thisTrack =  &(*mcTr)[trID];
       auto z = thisTrack->GetStartVertexCoordinatesZ();
-      auto eta = thisTrack->GetRapidity();
       auto p = thisTrack->GetP();
+      auto eta = atanh (thisTrack->GetStartVertexMomentumZ()/p); // eta;
       MCTrackspT->Fill(thisTrack->GetPt());
       MCTracksp->Fill(p);
       MCTrackRap->Fill(eta);
@@ -271,7 +269,7 @@ void CheckITSMFTCommonTracks(const Char_t *SimFile = "o2sim.root", const Char_t 
           MFTTrackRap->Fill(eta);
 
           if(allFoundTracksLTF[event][trID]) {
-            MFTTrackedEtaZ->Fill(thisTrack->GetStartVertexCoordinatesZ(),thisTrack->GetRapidity());
+            MFTTrackedEtaZ->Fill(thisTrack->GetStartVertexCoordinatesZ(),eta);
 
 
           }

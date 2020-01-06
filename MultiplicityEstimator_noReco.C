@@ -28,6 +28,9 @@ void MultiplicityEstimator_noReco(const Char_t *SimFile = "o2sim.root") {
   std::unique_ptr<TH1F> MCTracksEta = std::make_unique<TH1F> ("MC Tracks eta", "MC Tracks Pseudorapidity", 100, etaMin, etaMax);
   MCTracksEta->GetXaxis()->SetTitle("Pseudorapidity");
 
+  std::unique_ptr<TH2F> hitVertex = std::make_unique<TH2F> ("HitVertexes", "Vertexes of Tracks with hits in the MFT", 1000, -200, 200, 1000, -200, 200);
+  hitVertex->GetXaxis()->SetTitle("Z");
+  hitVertex->GetYaxis()->SetTitle("X");
 
   std::unique_ptr<TH1I> Trackablility = std::make_unique<TH1I> ("Trackablility", "In how many disks the tracks has hits", 6, 0, 6);
   Trackablility->GetXaxis()->SetTitle("Number of disks");
@@ -178,6 +181,7 @@ void MultiplicityEstimator_noReco(const Char_t *SimFile = "o2sim.root") {
   for (Int_t event=0; event<numberOfEvents ; event++) { // Loop over events in o2sim
     // std::cout << "Loop over events in o2sim. Event = " << event << std::endl;
     o2SimTree -> GetEntry(event);
+    MCTrackT<float>* thisTrack;// =  &(*mcTr)[trID];
     Int_t nMFTHits = mfthit->size(); // Number of mft hits in this event
     Int_t trackables_in_this_event=0;
 
@@ -193,17 +197,21 @@ void MultiplicityEstimator_noReco(const Char_t *SimFile = "o2sim.root") {
 
       Float_t z = hitp->GetZ(); // Z position of the hit => Identify MFT disk
       Int_t chipID = hitp->GetDetectorID();
-      if(!(chipID==84 | chipID==85 | chipID==86 | chipID==99 | chipID==100 | chipID==101 | chipID==548 | chipID==547 | chipID==546 |chipID==541 | chipID==540 | chipID==181)) mcTrackHasHitsInMFTDisks[trID][mftChipMapper.chip2Layer(hitp->GetDetectorID())/2] = true;
+      thisTrack = &(*mcTr)[trID];
+      auto vz = thisTrack->GetStartVertexCoordinatesZ();
+      auto vx = thisTrack->GetStartVertexCoordinatesX();
+      hitVertex->Fill(vz,vx);
+      mcTrackHasHitsInMFTDisks[trID][mftChipMapper.chip2Layer(hitp->GetDetectorID())/2] = true;
       }
 
     for (Int_t trID=0 ; trID < eventHeader->getMCEventStats().getNKeptTracks(); trID++) { // Loop on MC tracks
       //std::cout << "Loop on tracks to build histos. Track " << trID << " at event " << event << " -> " ;
 
       //fill MC histograms
-      MCTrackT<float>* thisTrack =  &(*mcTr)[trID];
+      thisTrack =  &(*mcTr)[trID];
       auto z = thisTrack->GetStartVertexCoordinatesZ();
-      auto eta = thisTrack->GetRapidity();
       auto p = thisTrack->GetP();
+      auto eta = atanh (thisTrack->GetStartVertexMomentumZ()/p); // eta;
       MCTrackspT->Fill(thisTrack->GetPt());
       MCTracksp->Fill(p);
       MCTracksEta->Fill(eta);
@@ -243,6 +251,8 @@ MCTracksEta->Write();
 Trackablility->Write();
 MultiplicityDistrib->Write();
 
+hitVertex->Write();
+
 
 MFTTrackablesEta->Write();
 
@@ -252,5 +262,5 @@ outFile.Close();
 
 //Int_t totalRecoMFTTracks = nCleanTracksLTF + nCleanTracksCA + nBadTracksLTF + nBadTracksCA;
 std::cout << "Number of MFT trackables = " << nMFTTrackables << std::endl;
-new TBrowser;
+//new TBrowser;
 }

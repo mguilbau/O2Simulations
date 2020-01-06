@@ -249,8 +249,8 @@ void MFTTrackerChecker(const Char_t *SimFile = "o2sim.root", const Char_t *trkFi
       //fill MC histograms
       MCTrackT<float>* thisTrack =  &(*mcTr)[trID];
       auto z = thisTrack->GetStartVertexCoordinatesZ();
-      auto p = thisTrack->GetP();
       auto pt = thisTrack->GetPt();
+      auto p = thisTrack->GetP();
       auto eta = atanh (thisTrack->GetStartVertexMomentumZ()/p); // eta;
       MCTrackspT->Fill(pt);
       MCTracksp->Fill(p);

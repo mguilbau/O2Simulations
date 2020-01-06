@@ -44,6 +44,11 @@ h = std::make_unique<TH2F> (histname, histtitle, 30, -20, 20, 30, -20, 20);
   std::unique_ptr<TH1F> MCTrackspT = std::make_unique<TH1F> ("MC Tracks pT", "MC Tracks pT", 100, 0, pMax);
   MCTrackspT->GetXaxis()->SetTitle("Transverse p");
 
+  std::unique_ptr<TH2F> hitVertex = std::make_unique<TH2F> ("HitVertexes", "Vertexes of Tracks with hits in the MFT", 1000, -100, 100, 1000, -100, 100);
+  hitVertex->GetXaxis()->SetTitle("Z");
+  hitVertex->GetYaxis()->SetTitle("X");
+
+
   std::unique_ptr<TH1F> MCTracksp = std::make_unique<TH1F> ("MC Tracks p", "MC Tracks p", 100, 0, pMax);
   MCTracksp->GetXaxis()->SetTitle("Total p");
 
@@ -113,6 +118,7 @@ h = std::make_unique<TH2F> (histname, histtitle, 30, -20, 20, 30, -20, 20);
   for (Int_t event=0; event<numberOfEvents ; event++) { // Loop over events in o2sim
     // std::cout << "Loop over events in o2sim. Event = " << event << std::endl;
     o2SimTree -> GetEntry(event);
+    MCTrackT<float>* thisTrack;// =  &(*mcTr)[trID];
     Int_t nMFTHits = mfthit->size(); // Number of mft hits in this event
     Int_t trackables_in_this_event=0;
 
@@ -130,6 +136,11 @@ h = std::make_unique<TH2F> (histname, histtitle, 30, -20, 20, 30, -20, 20);
       Float_t y = hitp->GetY(); // Y position of the hit
       Float_t z = hitp->GetZ(); // Z position of the hit
       Float_t r = sqrt(x*x+y*y);
+      thisTrack = &(*mcTr)[trID];
+
+      auto vz = thisTrack->GetStartVertexCoordinatesZ();
+      auto vx = thisTrack->GetStartVertexCoordinatesX();
+      hitVertex->Fill(vz,vx);
       auto this_disk = mftChipMapper.chip2Layer(hitp->GetDetectorID())/2;
       mcTrackHasHitsInMFTDisks[trID][this_disk] = true;
       hitRadialDistrib[this_disk]->Fill(r);
@@ -144,10 +155,10 @@ h = std::make_unique<TH2F> (histname, histtitle, 30, -20, 20, 30, -20, 20);
       //std::cout << "Loop on tracks to build histos. Track " << trID << " at event " << event << " -> " ;
 
       //fill MC histograms
-      MCTrackT<float>* thisTrack =  &(*mcTr)[trID];
+      thisTrack =  &(*mcTr)[trID];
       auto z = thisTrack->GetStartVertexCoordinatesZ();
-      auto eta = thisTrack->GetRapidity();
       auto p = thisTrack->GetP();
+      auto eta = atanh (thisTrack->GetStartVertexMomentumZ()/p); // eta;
       MCTrackspT->Fill(thisTrack->GetPt());
       MCTracksp->Fill(p);
       MCTracksEta->Fill(eta);
@@ -187,6 +198,7 @@ MCTracksEta->Write();
 Trackablility->Write();
 MultiplicityDistrib->Write();
 
+hitVertex->Write();
 
 MFTTrackablesEta->Write();
 
