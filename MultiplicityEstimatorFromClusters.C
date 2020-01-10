@@ -46,6 +46,7 @@ void MultiplicityEstimatorFromClusters(const Char_t *ClustersFile = "mftclusters
   Int_t nMFTTrackables=0;
   Int_t nMFTTrackablesQED=0;
   Int_t nMFTTrackablesHIJING=0;
+  Int_t nCountedLabels=0;
 
   // MFT Clusters and trackability
   //   - Identify trackable tracks (clusters in at least 4 disks)
@@ -104,6 +105,7 @@ for (Int_t entry=0; entry<numberOfEntries ; entry++) { // Loop over clusTree ent
 
             srcIDs[sourceID]=srcIDs[sourceID]+1;
             evtIDs[eventID]=evtIDs[eventID]+1;
+            nCountedLabels++;
 
             //std::cout << " MCLabel # " << label << ": " << plabels->getElement(label) << " sourceID = " << sourceID << " eventID = " << eventID << " trackID = " << trackID << " MFTLayer = " << mftChipMapper.chip2Layer(clusterp->getSensorID()) << " ROF = " << irof << std::endl;
             //if (n_cluster == 1757 | n_cluster == 1758 ) std::cout << n_cluster << " -> " << clusterp->getX() << " " << clusterp->getY() << " " << clusterp->getZ() << " " << std::endl;
@@ -158,10 +160,12 @@ for (Int_t entry=0; entry<numberOfEntries ; entry++) { // Loop over clusTree ent
 //MultiplicityDistrib->Write();
 //outFile.Close();
 
-//Int_t totalRecoMFTTracks = nCleanTracksLTF + nCleanTracksCA + nBadTracksLTF + nBadTracksCA;
+//Int_t totalRecoMFTTracks = nCleanTracksLTF + nCleanTracksCA + nInvalidTracksLTF + nInvalidTracksCA;
 std::cout << "Number of MFT trackables (GENERATOR) = " << nMFTTrackablesHIJING << std::endl;
 std::cout << "Number of MFT trackables (QED Background) = " << nMFTTrackablesQED << std::endl;
 std::cout << "Number of MFT trackables (Total) = " << nMFTTrackables << std::endl;
+std::cout << "Number of nCountedLabels = " << nCountedLabels << std::endl;
+
 
 //new TBrowser;
 }

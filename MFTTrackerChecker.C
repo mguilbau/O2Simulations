@@ -7,7 +7,7 @@
 constexpr Double_t pMax = 4;
 constexpr Double_t pMin = 0;
 constexpr Double_t etaMin = -4.0;
-constexpr Double_t etaMax = -1.9;
+constexpr Double_t etaMax = +4.0;
 
 void MFTTrackerChecker(const Char_t *SimFile = "o2sim.root", const Char_t *trkFile = "mfttracks.root") {
 
@@ -114,7 +114,7 @@ void MFTTrackerChecker(const Char_t *SimFile = "o2sim.root", const Char_t *trkFi
   Int_t numberOfEvents = o2SimTree -> GetEntries();
   std::cout << "numberOfEvents = " << numberOfEvents << std::endl;
 
-  Int_t nCleanTracksLTF = 0, nCleanTracksCA = 0, nBadTracksLTF =0, nBadTracksCA = 0;
+  Int_t nCleanTracksLTF = 0, nCleanTracksCA = 0, nInvalidTracksLTF =0, nInvalidTracksCA = 0;
 
   vector<Hit>* mfthit = nullptr;
   o2SimTree -> SetBranchAddress("MFTHit",&mfthit);
@@ -130,14 +130,17 @@ void MFTTrackerChecker(const Char_t *SimFile = "o2sim.root", const Char_t *trkFi
 
   mftTrackTree->GetEntry(0);
   o2SimTree -> GetEntry(0);
-  vector<eventFoundTracks> allFoundTracksLTF(numberOfEvents+10), allFoundTracksCA(numberOfEvents+10); // True for reconstructed tracks - one vector of bool per event
+//  vector<eventFoundTracks> allFoundTracksLTF(numberOfEvents+10), allFoundTracksCA(numberOfEvents+10); // True for reconstructed tracks - one vector of bool per event
+  vector<eventFoundTracks> allFoundTracksLTF, allFoundTracksCA; // True for reconstructed tracks - one vector of bool per event
+
 
   for (auto event = 0 ; event < numberOfEvents ; event++) { // Resize vector to accomodate found status of all tracks in all events
     o2SimTree -> GetEntry(event);
     auto numberOfTracksThisEvent = eventHeader->getMCEventStats().getNKeptTracks();
     std::cout << "Resizing allFoundTracks for event " << event <<  " with ntracks = " << numberOfTracksThisEvent << std::endl;
-    allFoundTracksLTF[event].resize(numberOfTracksThisEvent,false);
-    allFoundTracksCA[event].resize(numberOfTracksThisEvent,false);
+    eventFoundTracks tempFoundTracks(numberOfTracksThisEvent,false);
+    allFoundTracksLTF.push_back(tempFoundTracks); // resize(numberOfTracksThisEvent,false);
+    allFoundTracksCA.push_back(tempFoundTracks);// [event].resize(numberOfTracksThisEvent,false);
   }
 
 
@@ -182,7 +185,7 @@ void MFTTrackerChecker(const Char_t *SimFile = "o2sim.root", const Char_t *trkFi
    }
    else {
     //std::cout << "Noise or Mixed TrackLTF!" << std::endl;
-    nBadTracksLTF++;
+    nInvalidTracksLTF++;
   }
 
   } // Loop on TracksLTF
@@ -217,7 +220,7 @@ void MFTTrackerChecker(const Char_t *SimFile = "o2sim.root", const Char_t *trkFi
   }
   else {
     //std::cout << "Noise or Mixed TrackCA!" << std::endl;
-    nBadTracksCA++;
+    nInvalidTracksCA++;
   }
 
   } // Loop on TracksCA
@@ -477,16 +480,16 @@ MFTAcceptance.Write();
 
 outFile.Close();
 
-Int_t totalRecoMFTTracks = nCleanTracksLTF + nCleanTracksCA + nBadTracksLTF + nBadTracksCA;
+Int_t totalRecoMFTTracks = nCleanTracksLTF + nCleanTracksCA + nInvalidTracksLTF + nInvalidTracksCA;
 std::cout << "---------------------------------------------------" << std::endl;
 std::cout << "Number of reconstructed MFT Tracks = " << totalRecoMFTTracks << std::endl;
 std::cout << "Number of clean MFT Tracks = " << nCleanTracksLTF + nCleanTracksCA << std::endl;
-std::cout << "Number of mixed MFT Tracks = " << nBadTracksLTF + nBadTracksCA << std::endl;
+std::cout << "Number of mixed MFT Tracks = " << nInvalidTracksLTF + nInvalidTracksCA << std::endl;
 std::cout << "---------------------------------------------------" << std::endl;
 std::cout << "nCleanTracksLTF = " << nCleanTracksLTF << std::endl;
 std::cout << "nCleanTracksCA = " << nCleanTracksCA << std::endl;
-std::cout << "nBadTracksLTF = " << nBadTracksLTF  << " (" << 100.f*nBadTracksLTF/(nCleanTracksLTF+nBadTracksLTF) << " %)" << std::endl;
-std::cout << "nBadTracksCA = " << nBadTracksCA << " (" << 100.f*nBadTracksCA/(nCleanTracksCA+nBadTracksCA) << " %)" << std::endl;
+std::cout << "nInvalidTracksLTF = " << nInvalidTracksLTF  << " (" << 100.f*nInvalidTracksLTF/(nCleanTracksLTF+nInvalidTracksLTF) << " %)" << std::endl;
+std::cout << "nInvalidTracksCA = " << nInvalidTracksCA << " (" << 100.f*nInvalidTracksCA/(nCleanTracksCA+nInvalidTracksCA) << " %)" << std::endl;
 std::cout << "---------------------------------------------------" << std::endl;
 
 }

@@ -66,7 +66,7 @@ void MultiplicityEstimator_noReco(const Char_t *SimFile = "o2sim.root") {
   Int_t numberOfEvents = o2SimTree -> GetEntries();
   std::cout << "numberOfEvents = " << numberOfEvents << std::endl;
 
-  //Int_t nCleanTracksLTF = 0, nCleanTracksCA = 0, nBadTracksLTF =0, nBadTracksCA = 0;
+  //Int_t nCleanTracksLTF = 0, nCleanTracksCA = 0, nInvalidTracksLTF =0, nInvalidTracksCA = 0;
 
   vector<Hit>* mfthit = nullptr;
   o2SimTree -> SetBranchAddress("MFTHit",&mfthit);
@@ -134,7 +134,7 @@ void MultiplicityEstimator_noReco(const Char_t *SimFile = "o2sim.root") {
    }
    else {
     //std::cout << "Noise or Mixed TrackLTF!" << std::endl;
-    nBadTracksLTF++;
+    nInvalidTracksLTF++;
   }
 
   } // Loop on TracksLTF
@@ -169,7 +169,7 @@ void MultiplicityEstimator_noReco(const Char_t *SimFile = "o2sim.root") {
   }
   else {
     //std::cout << "Noise or Mixed TrackCA!" << std::endl;
-    nBadTracksCA++;
+    nInvalidTracksCA++;
   }
 
   } // Loop on TracksCA
@@ -260,7 +260,7 @@ MFTTrackablesEta->Write();
 
 outFile.Close();
 
-//Int_t totalRecoMFTTracks = nCleanTracksLTF + nCleanTracksCA + nBadTracksLTF + nBadTracksCA;
+//Int_t totalRecoMFTTracks = nCleanTracksLTF + nCleanTracksCA + nInvalidTracksLTF + nInvalidTracksCA;
 std::cout << "Number of MFT trackables = " << nMFTTrackables << std::endl;
 //new TBrowser;
 }

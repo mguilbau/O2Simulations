@@ -81,7 +81,7 @@ void CheckITSMFTCommonTracks(const Char_t *SimFile = "o2sim.root", const Char_t 
   Int_t numberOfEvents = o2SimTree -> GetEntries();
   std::cout << "numberOfEvents = " << numberOfEvents << std::endl;
 
-  Int_t nCleanTracksLTF = 0, nCleanTracksCA = 0, nBadTracksLTF =0, nBadTracksCA = 0;
+  Int_t nCleanTracksLTF = 0, nCleanTracksCA = 0, nInvalidTracksLTF =0, nInvalidTracksCA = 0;
 
   vector<Hit>* mfthit = nullptr;
   vector<Hit>* itshit = nullptr;
@@ -107,7 +107,7 @@ void CheckITSMFTCommonTracks(const Char_t *SimFile = "o2sim.root", const Char_t 
   // Part 1: Reconstructed MFT Tracks
   //  Loop over reconstructed tracks to identify clean and mixed/noise tracks
   //   1.1 Clean tracks have at least 80% of its clusters from the same track
-  //   1.2 If track is not clear it is a mixed/noise track
+  //   1.2 If track is not clear it is a invalid (mixed/noise) track
   // Part 2: MC hits and tracks
   //   2.1 Identify trackable tracks (clusters in at least 4 disks)
   //   2.2 Identify successfully reconstructed tracks
@@ -144,7 +144,7 @@ void CheckITSMFTCommonTracks(const Char_t *SimFile = "o2sim.root", const Char_t 
    }
    else {
     //std::cout << "Noise or Mixed TrackLTF!" << std::endl;
-    nBadTracksLTF++;
+    nInvalidTracksLTF++;
   }
 
   } // Loop on TracksLTF
@@ -179,7 +179,7 @@ void CheckITSMFTCommonTracks(const Char_t *SimFile = "o2sim.root", const Char_t 
   }
   else {
     //std::cout << "Noise or Mixed TrackCA!" << std::endl;
-    nBadTracksCA++;
+    nInvalidTracksCA++;
   }
 
   } // Loop on TracksCA
@@ -322,18 +322,18 @@ MFTandOneITSLInnerLayer->Write();
 
 outFile.Close();
 
-Int_t totalRecoMFTTracks = nCleanTracksLTF + nCleanTracksCA + nBadTracksLTF + nBadTracksCA;
+Int_t totalRecoMFTTracks = nCleanTracksLTF + nCleanTracksCA + nInvalidTracksLTF + nInvalidTracksCA;
 Int_t totalCleanMFTTracks = nCleanTracksLTF + nCleanTracksCA;
-Int_t totalBadMFTTracks = nBadTracksLTF + nBadTracksCA;
+Int_t totalInvalidMFTTracks = nInvalidTracksLTF + nInvalidTracksCA;
 std::cout << "---------------------------------------------------" << std::endl;
 std::cout << "Number of reconstructed MFT Tracks = " << totalRecoMFTTracks << std::endl;
 std::cout << "Number of clean MFT Tracks = " << totalCleanMFTTracks << " (" << 100.f*totalCleanMFTTracks/(totalRecoMFTTracks) << " %)" << std::endl;
-std::cout << "Number of mixed MFT Tracks = " << totalBadMFTTracks << " (" << 100.f*totalBadMFTTracks/(totalRecoMFTTracks) << " %)" << std::endl;
+std::cout << "Number of mixed MFT Tracks = " << totalInvalidMFTTracks << " (" << 100.f*totalInvalidMFTTracks/(totalRecoMFTTracks) << " %)" << std::endl;
 std::cout << "---------------------------------------------------" << std::endl;
 std::cout << "nCleanTracksLTF = " << nCleanTracksLTF << std::endl;
 std::cout << "nCleanTracksCA = " << nCleanTracksCA << std::endl;
-std::cout << "nBadTracksLTF = " << nBadTracksLTF  << " (" << 100.f*nBadTracksLTF/(nCleanTracksLTF+nBadTracksLTF) << " % of LTF tracks)" << std::endl;
-std::cout << "nBadTracksCA = " << nBadTracksCA << " (" << 100.f*nBadTracksCA/(nCleanTracksCA+nBadTracksCA) << " % of CA tracks)" << std::endl;
+std::cout << "nInvalidTracksLTF = " << nInvalidTracksLTF  << " (" << 100.f*nInvalidTracksLTF/(nCleanTracksLTF+nInvalidTracksLTF) << " % of LTF tracks)" << std::endl;
+std::cout << "nInvalidTracksCA = " << nInvalidTracksCA << " (" << 100.f*nInvalidTracksCA/(nCleanTracksCA+nInvalidTracksCA) << " % of CA tracks)" << std::endl;
 std::cout << "---------------------------------------------------" << std::endl;
 
 }

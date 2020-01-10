@@ -32,7 +32,7 @@ std::array<std::unique_ptr<TH2F>, 6> hitDistrib; // 0 to 4 -> hits in correspond
 for (auto& h : hitDistrib) {
 snprintf(histname, 64, "hitDistrib_%d", ih);
 snprintf(histtitle, 64, "Hit Distribution in Disk %d", ih);
-h = std::make_unique<TH2F> (histname, histtitle, 30, -20, 20, 30, -20, 20);
+h = std::make_unique<TH2F> (histname, histtitle, 80, -20, 20, 80, -20, 20);
 ++ih;
 }
 
@@ -90,7 +90,7 @@ h = std::make_unique<TH2F> (histname, histtitle, 30, -20, 20, 30, -20, 20);
   Int_t numberOfEvents = o2SimTree -> GetEntries();
   std::cout << "numberOfEvents = " << numberOfEvents << std::endl;
 
-  //Int_t nCleanTracksLTF = 0, nCleanTracksCA = 0, nBadTracksLTF =0, nBadTracksCA = 0;
+  //Int_t nCleanTracksLTF = 0, nCleanTracksCA = 0, nInvalidTracksLTF =0, nInvalidTracksCA = 0;
 
   vector<Hit>* mfthit = nullptr;
   o2SimTree -> SetBranchAddress("MFTHit",&mfthit);
@@ -214,7 +214,7 @@ h->Write();
 
 outFile.Close();
 
-//Int_t totalRecoMFTTracks = nCleanTracksLTF + nCleanTracksCA + nBadTracksLTF + nBadTracksCA;
+//Int_t totalRecoMFTTracks = nCleanTracksLTF + nCleanTracksCA + nInvalidTracksLTF + nInvalidTracksCA;
 std::cout << "Number of MFT trackables = " << nMFTTrackables << std::endl;
 
 auto this_disk=0;
