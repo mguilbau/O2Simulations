@@ -3,14 +3,8 @@
 #include "TTree.h"
 
 void MultiplicityEstimatorFromClusters(const Char_t *ClustersFile = "mftclusters.root", bool debug = false) {
-  std::unique_ptr<TH1I> Trackablility = std::make_unique<TH1I> ("Trackablility", "In how many disks the tracks has clusters", 6, 0, 6);
-  Trackablility->GetXaxis()->SetTitle("Number of disks");
-  std::unique_ptr<TH1I> MultiplicityDistrib = std::make_unique<TH1I> ("Multiplicity", "MFT Trackables Distribution", 10000, 0, 10000);
-  MultiplicityDistrib->GetXaxis()->SetTitle("Trackable Multiplicity");
 
   using o2::itsmft::Cluster;
-  using o2::itsmft::ROFRecord;
-  using o2::itsmft::MC2ROFRecord;
   using trackHasClustersinMFTDisks = std::array<bool,5>; // Disks with hits from a MFT track
   using trackMap = std::map<Int_t, trackHasClustersinMFTDisks>;
   using eventMap = std::map<Int_t, trackMap>;
@@ -23,37 +17,13 @@ void MultiplicityEstimatorFromClusters(const Char_t *ClustersFile = "mftclusters
   std::vector<Cluster>* mftcluster = nullptr;
   clusTree->SetBranchAddress("MFTCluster", &mftcluster);
 
-  // ROFrecords
-  //## Deprecated because of the change in data format
-  //std::vector<ROFRecord> rofRecVec, *rofRecVecP = &rofRecVec;
-  //TTree* ROFRecTree = (TTree*) clusFileIn->Get("MFTClustersROF");
-  //ROFRecTree->SetBranchAddress("MFTClustersROF", &rofRecVecP);
-  //###
-  std::vector<ROFRecord>* rofRecVec = nullptr;
-  clusTree->SetBranchAddress("MFTClustersROF", &rofRecVec);
-
   // Cluster MC labels
   o2::dataformats::MCTruthContainer<o2::MCCompLabel>* clusLabArray = nullptr;
   o2::dataformats::MCTruthContainer<o2::MCCompLabel> labels, *plabels = &labels;
   clusTree->SetBranchAddress("MFTClusterMCTruth", &plabels);
-  //## Deprecated because of the change in data format
-  //std::vector<MC2ROFRecord> mc2rofVec, *mc2rofVecP = &mc2rofVec;
-  //TTree* MC2ROFRecTree = nullptr;
-  //MC2ROFRecTree = (TTree*)clusFileIn->Get("MFTClustersMC2ROF");
-  //MC2ROFRecTree->SetBranchAddress("MFTClustersMC2ROF", &mc2rofVecP);
-  //###
-  std::vector<MC2ROFRecord>* mc2rofVec = nullptr;
-  clusTree->SetBranchAddress("MFTClustersMC2ROF", &mc2rofVec);
 
-
-  // ROFrames
+  // Get the only TTree entry :(
   clusTree->GetEntry(0);
-  int nROFRec = (int)rofRecVec->size();
-  if(debug) 
-    std::cout << "Reconstructed ROF size = " << nROFRec << std::endl;
-
-  std::vector<int> mcEvMin(nROFRec, 0xFFFFFFF);
-  std::vector<int> mcEvMax(nROFRec, -1);
 
   Int_t nMFTTrackables=0;
   Int_t nMFTTrackablesQED=0;
